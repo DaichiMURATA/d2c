@@ -1,49 +1,67 @@
 /**
  * @file cards.js
  * @description Cards block - Grid of card items
- * @version 1.0.0
+ * @version 2.0.0
  * 
+ * Combines Boilerplate functionality with Figma design system
  * Based on Adobe EDS Block Collection Cards pattern
  * @see https://github.com/adobe/aem-block-collection/tree/main/blocks/cards
  */
+
+import { createOptimizedPicture } from '../../scripts/aem.js';
 
 /**
  * Decorates the cards block
  * @param {Element} block The cards block element
  */
 export default function decorate(block) {
+  // Convert to ul/li structure (Boilerplate pattern)
+  const ul = document.createElement('ul');
   const rows = [...block.children];
   
-  // Convert rows to cards
   rows.forEach((row) => {
-    const card = document.createElement('div');
-    card.className = 'card';
+    const li = document.createElement('li');
+    li.className = 'card';
     
-    // Move row content to card
-    card.innerHTML = row.innerHTML;
-    
-    // Find and style card elements
-    const image = card.querySelector('picture');
-    if (image) {
-      image.parentElement.classList.add('card-image');
+    // Move all cells from row to li
+    while (row.firstElementChild) {
+      li.append(row.firstElementChild);
     }
     
-    const heading = card.querySelector('h1, h2, h3, h4, h5, h6');
-    if (heading) {
-      heading.classList.add('card-title');
-    }
-    
-    const paragraphs = card.querySelectorAll('p');
-    paragraphs.forEach((p) => {
-      if (p.querySelector('a')) {
-        p.classList.add('card-cta');
+    // Process each cell
+    [...li.children].forEach((div) => {
+      // Image cell detection (Boilerplate logic)
+      if (div.children.length === 1 && div.querySelector('picture')) {
+        div.className = 'card-image';
       } else {
-        p.classList.add('card-body');
+        div.className = 'card-body';
+        
+        // Apply semantic classes to content
+        const heading = div.querySelector('h1, h2, h3, h4, h5, h6');
+        if (heading) {
+          heading.classList.add('card-title');
+        }
+        
+        const paragraphs = div.querySelectorAll('p');
+        paragraphs.forEach((p) => {
+          if (p.querySelector('a')) {
+            p.classList.add('card-cta');
+          }
+        });
       }
     });
     
-    row.replaceWith(card);
+    ul.append(li);
   });
+  
+  // Optimize images (Boilerplate feature)
+  ul.querySelectorAll('picture > img').forEach((img) => {
+    img.closest('picture').replaceWith(
+      createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])
+    );
+  });
+  
+  block.replaceChildren(ul);
   
   // Public API
   block._eds = {

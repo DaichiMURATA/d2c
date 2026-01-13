@@ -1,21 +1,23 @@
 /**
  * @file cards.css
  * @description Styles for the Cards block
- * @version 1.0.0
+ * @version 2.0.0
+ * Combines Boilerplate structure with Figma design tokens
  */
 
-/* Cards Container */
-.cards {
+/* Cards Container - ul structure (Boilerplate) */
+.cards > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--spacing-l, 24px);
-  margin: var(--spacing-xl, 32px) 0;
-  padding: 0;
 }
 
-/* Card Item */
-.card {
+/* Card Item - li.card (Hybrid) */
+.cards > ul > li.card {
   display: flex;
   flex-direction: column;
   background-color: var(--color-neutral-0, #ffffff);
@@ -25,7 +27,7 @@
   transition: all 0.2s ease;
 }
 
-.card:hover {
+.cards > ul > li.card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
