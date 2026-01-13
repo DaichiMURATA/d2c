@@ -152,7 +152,7 @@ jobs:
     if: github.event.inputs.test_layer != 'layer-1-only'
     outputs:
       test_status: ${{ steps.tests.outcome }}
-      chromatic_url: ${{ steps.chromatic_upload.outputs.url }}
+      chromatic_url: ${{ steps.chromatic_upload.outputs.chromatic_url }}
       build_number: ${{ steps.chromatic_upload.outputs.build_number }}
     
     env:
