@@ -81,8 +81,9 @@ jobs:
           STORY_COUNT=$(grep -oP 'tested \K\d+(?= stor)' chromatic-storybook-output.txt | head -1 || echo "0")
           
           # Extract full Chromatic URL directly from CLI output
-          # Pattern: "View build details at https://www.chromatic.com/build?appId=...&number=..."
-          BUILD_URL=$(grep -oP 'View build details at \Khttps://[^\s]+' chromatic-storybook-output.txt | head -1 || echo "")
+          # Pattern: "    → View build details at https://www.chromatic.com/build?appId=...&number=..."
+          # Using .* to match any prefix before "View build details at"
+          BUILD_URL=$(grep -oP '.*View build details at \Khttps://[^\s]+' chromatic-storybook-output.txt | head -1 || echo "")
           
           # Debug: Show extracted values
           echo "DEBUG: BUILD_NUMBER='$BUILD_NUMBER'"
@@ -205,8 +206,9 @@ jobs:
           BUILD_NUMBER=$(grep -oP '(?:Build|build) \K\d+' chromatic-output.txt | head -1 || echo "")
           
           # Extract full Chromatic URL directly from CLI output
-          # Pattern: "View build details at https://www.chromatic.com/build?appId=...&number=..."
-          BUILD_URL=$(grep -oP 'View build details at \Khttps://[^\s]+' chromatic-output.txt | head -1 || echo "")
+          # Pattern: "    → View build details at https://www.chromatic.com/build?appId=...&number=..."
+          # Using .* to match any prefix before "View build details at"
+          BUILD_URL=$(grep -oP '.*View build details at \Khttps://[^\s]+' chromatic-output.txt | head -1 || echo "")
           
           # Debug: Show extracted values
           echo "DEBUG: BUILD_NUMBER='$BUILD_NUMBER'"
