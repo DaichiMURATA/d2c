@@ -14,7 +14,7 @@
     "build-storybook": "storybook build",
     "chromatic:storybook": "npx chromatic --project-token=${CHROMATIC_STORYBOOK_TOKEN}",
     "test:chromatic": "npx playwright test --config=chromatic.config.js",
-    "chromatic:playwright": "npx chromatic --playwright --project-token=${CHROMATIC_PLAYWRIGHT_TOKEN} --exit-zero-on-changes"
+    "chromatic:playwright": "npx chromatic --playwright --project-token=${CHROMATIC_PLAYWRIGHT_TOKEN}"
   },
   "repository": {
     "type": "git",

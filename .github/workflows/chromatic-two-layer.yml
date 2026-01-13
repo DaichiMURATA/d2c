@@ -49,43 +49,49 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Build Storybook
+        run: npm run build-storybook
+      
       - name: Run Chromatic (Storybook - Changed Blocks Only)
         id: chromatic
-        uses: chromaui/action@v1
-        with:
-          projectToken: ${{ secrets.CHROMATIC_STORYBOOK_TOKEN }}
-          buildScriptName: build-storybook
-          exitZeroOnChanges: true
-          exitOnceUploaded: true
-          onlyChanged: true  # 変更のあったBlockのStorybookのみテスト
-        continue-on-error: false
-      
-      - name: Extract Chromatic Build Number
-        id: extract_build_number
-        if: always()
         run: |
-          # Extract build URL from Chromatic output
-          BUILD_URL="${{ steps.chromatic.outputs.buildUrl }}"
+          echo "📤 Publishing Storybook to Chromatic..."
+          npx chromatic \
+            --project-token=${{ secrets.CHROMATIC_STORYBOOK_TOKEN }} \
+            --storybook-build-dir=storybook-static \
+            --only-changed > chromatic-storybook-output.txt 2>&1 || true
           
-          if [ -n "$BUILD_URL" ]; then
-            # Extract build number from URL pattern: https://www.chromatic.com/build?appId=XXX&number=YYY
-            BUILD_NUMBER=$(echo "$BUILD_URL" | grep -oP 'number=\K\d+' || echo "")
-            
-            # Get appId from secrets or URL
-            APP_ID=$(echo "$BUILD_URL" | grep -oP 'appId=\K[^&]+' || echo "${{ secrets.CHROMATIC_STORYBOOK_APP_ID }}")
-            
-            if [ -n "$BUILD_NUMBER" ] && [ -n "$APP_ID" ]; then
-              CHROMATIC_URL="https://www.chromatic.com/build?appId=${APP_ID}&number=${BUILD_NUMBER}"
-              echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
-              echo "chromatic_url=${CHROMATIC_URL}" >> $GITHUB_OUTPUT
-              echo "✅ Chromatic Build: ${CHROMATIC_URL}"
-            else
-              echo "chromatic_url=${BUILD_URL}" >> $GITHUB_OUTPUT
-              echo "⚠️ Could not extract build number, using full URL"
-            fi
+          # Display output
+          cat chromatic-storybook-output.txt
+          
+          # Extract build number and story count
+          BUILD_NUMBER=$(grep -oP '(?:Build|build) \K\d+' chromatic-storybook-output.txt | head -1 || echo "")
+          STORY_COUNT=$(grep -oP 'tested \K\d+(?= stor)' chromatic-storybook-output.txt | head -1 || echo "0")
+          
+          # Construct Chromatic build URL
+          if [ -n "$BUILD_NUMBER" ]; then
+            APP_ID="${{ secrets.CHROMATIC_STORYBOOK_APP_ID }}"
+            BUILD_URL="https://www.chromatic.com/build?appId=${APP_ID}&number=${BUILD_NUMBER}"
+            echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+            echo "chromatic_url=${BUILD_URL}" >> $GITHUB_OUTPUT
+            echo "story_count=${STORY_COUNT}" >> $GITHUB_OUTPUT
+            echo "✅ Chromatic Build #${BUILD_NUMBER}: ${BUILD_URL}"
           else
-            echo "❌ No Chromatic build URL available"
+            APP_ID="${{ secrets.CHROMATIC_STORYBOOK_APP_ID }}"
+            BUILD_URL="https://www.chromatic.com/builds?appId=${APP_ID}"
+            echo "chromatic_url=${BUILD_URL}" >> $GITHUB_OUTPUT
+            echo "build_number=" >> $GITHUB_OUTPUT
+            echo "story_count=${STORY_COUNT}" >> $GITHUB_OUTPUT
+            echo "⚠️ Could not extract build number"
           fi
+      
+      - name: Upload Chromatic output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: layer1-chromatic-output
+          path: chromatic-storybook-output.txt
+          retention-days: 7
       
       - name: Upload Storybook build (on failure)
         if: failure()
