@@ -1,8 +1,0 @@
-import"./iframe-CHC9vj1_.js";import"./preload-helper-PPVm8Dsz.js";function l(r){const a=document.createElement("div");a.className="search-container";const t=document.createElement("form");t.className="search-form",t.setAttribute("role","search");const e=document.createElement("input");e.type="search",e.className="search-input",e.placeholder="Search...",e.setAttribute("aria-label","Search");const n=document.createElement("button");n.type="submit",n.className="search-button",n.textContent="Search",n.setAttribute("aria-label","Submit search"),t.appendChild(e),t.appendChild(n),a.appendChild(t);const c=document.createElement("div");c.className="search-results",c.setAttribute("aria-live","polite"),a.appendChild(c),r.innerHTML="",r.appendChild(a),t.addEventListener("submit",o=>{o.preventDefault();const i=e.value.trim();i&&(c.textContent=`Searching for: "${i}"...`)}),r._eds={search:o=>{e.value=o,t.dispatchEvent(new Event("submit"))}}}const u={title:"Blocks/Search",parameters:{layout:"fullscreen",chromatic:{viewports:[375,1200]}}},m=()=>{const r=document.createElement("main"),a=document.createElement("div");a.className="section";const t=document.createElement("div"),e=document.createElement("div");return e.className="search",t.appendChild(e),a.appendChild(t),r.appendChild(a),l(e),r},s={render:m,parameters:{chromatic:{delay:300}}};s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{
-  render: Template,
-  parameters: {
-    chromatic: {
-      delay: 300
-    }
-  }
-}`,...s.parameters?.docs?.source}}};const h=["Default"];export{s as Default,h as __namedExportsOrder,u as default};

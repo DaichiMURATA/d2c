@@ -1,8 +1,0 @@
-import"./iframe-CHC9vj1_.js";import"./preload-helper-PPVm8Dsz.js";function i(a){const o=[...a.children],e={};o.forEach(t=>{const c=[...t.children];if(c.length>=2){const s=c[0].textContent.trim().toLowerCase(),r=c[1].textContent.trim();e[s]=r}});const n=a.closest(".section");if(n&&((e.background||e["background-color"])&&(n.style.backgroundColor=e.background||e["background-color"]),e.theme&&n.classList.add(`theme-${e.theme}`),e.class||e.classes)){const t=(e.class||e.classes).split(" ");n.classList.add(...t)}a.style.display="none",a._eds={metadata:e,getMetadata:()=>e}}const u={title:"Blocks/Section Metadata",parameters:{layout:"fullscreen",chromatic:{viewports:[375,1200]}}},l=()=>{const a=document.createElement("main"),o=document.createElement("div");o.className="section";const e=document.createElement("div");e.innerHTML="<h2>Section with Metadata</h2><p>The background color is applied via Section Metadata block.</p>",o.appendChild(e);const n=document.createElement("div"),t=document.createElement("div");t.className="section-metadata";const c=document.createElement("div"),s=document.createElement("div");s.textContent="background";const r=document.createElement("div");return r.textContent="#f0f8ff",c.appendChild(s),c.appendChild(r),t.appendChild(c),n.appendChild(t),o.appendChild(n),a.appendChild(o),i(t),a},d={render:l,parameters:{chromatic:{delay:300}}};d.parameters={...d.parameters,docs:{...d.parameters?.docs,source:{originalSource:`{
-  render: Template,
-  parameters: {
-    chromatic: {
-      delay: 300
-    }
-  }
-}`,...d.parameters?.docs?.source}}};const h=["Default"];export{d as Default,h as __namedExportsOrder,u as default};

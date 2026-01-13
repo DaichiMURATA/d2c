@@ -23,3 +23,13 @@ figma-variables-summary.json
 *-COMPLETE.md
 *-FIX*.md
 CLEANUP-PLAN.md
+
+# Storybook build output
+storybook-static/
+
+# Chromatic/Playwright test results
+test-results/
+
+# Build logs
+build-archive.log
+build-storybook.log

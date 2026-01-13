@@ -1,8 +1,0 @@
-import"./iframe-CHC9vj1_.js";import"./preload-helper-PPVm8Dsz.js";function p(r){const a=[...r.children],c=document.createElement("nav");c.setAttribute("aria-label","Breadcrumb");const t=document.createElement("ol");t.className="breadcrumb-list",a.forEach((l,o)=>{const s=[...l.children];if(s.length>0){const e=document.createElement("li");e.className="breadcrumb-item";const n=s[0],i=n.querySelector("a");if(i)e.innerHTML=n.innerHTML,o===a.length-1&&(i.setAttribute("aria-current","page"),e.classList.add("active"));else{const m=document.createElement("span");m.textContent=n.textContent,e.appendChild(m),e.classList.add("active")}t.appendChild(e)}}),c.appendChild(t),r.innerHTML="",r.appendChild(c)}const b={title:"Blocks/Breadcrumb",parameters:{layout:"fullscreen",chromatic:{viewports:[375,1200]}}},u=()=>{const r=document.createElement("main"),a=document.createElement("div");a.className="section";const c=document.createElement("div"),t=document.createElement("div");return t.className="breadcrumb",[{text:"Home",href:"/"},{text:"Products",href:"/products"},{text:"Category",href:"/products/category"},{text:"Current Page",href:null}].forEach(o=>{const s=document.createElement("div"),e=document.createElement("div");if(o.href){const n=document.createElement("a");n.href=o.href,n.textContent=o.text,e.appendChild(n)}else e.textContent=o.text;s.appendChild(e),t.appendChild(s)}),c.appendChild(t),a.appendChild(c),r.appendChild(a),p(t),r},d={render:u,parameters:{chromatic:{delay:300}}};d.parameters={...d.parameters,docs:{...d.parameters?.docs,source:{originalSource:`{
-  render: Template,
-  parameters: {
-    chromatic: {
-      delay: 300
-    }
-  }
-}`,...d.parameters?.docs?.source}}};const C=["Default"];export{d as Default,C as __namedExportsOrder,b as default};
