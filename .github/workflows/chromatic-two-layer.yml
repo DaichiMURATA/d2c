@@ -31,10 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.test_layer != 'layer-2-only'
     outputs:
-      build_url: ${{ steps.chromatic.outputs.buildUrl }}
-      story_count: ${{ steps.chromatic.outputs.storyCount }}
-      build_number: ${{ steps.extract_build_number.outputs.build_number }}
-      chromatic_url: ${{ steps.extract_build_number.outputs.chromatic_url }}
+      build_number: ${{ steps.chromatic.outputs.build_number }}
+      chromatic_url: ${{ steps.chromatic.outputs.chromatic_url }}
+      story_count: ${{ steps.chromatic.outputs.story_count }}
     
     steps:
       - name: Checkout repository
@@ -204,7 +203,7 @@ jobs:
             BUILD_URL="https://www.chromatic.com/builds?appId=${APP_ID}"
           fi
           
-          echo "url=${BUILD_URL}" >> $GITHUB_OUTPUT
+          echo "chromatic_url=${BUILD_URL}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
           
           # Display output
