@@ -31,7 +31,7 @@
 .accordion-button {
   width: 100%;
   padding: var(--spacing-m, 16px) var(--spacing-l, 24px);
-  background-color: var(--color-neutral-0, #ffffff); /* Revert to white for PR test */
+  background-color: #4caf50; /* DRAMATIC TEST: Bright green background */
   border: none;
   text-align: left;
   cursor: pointer;
@@ -43,7 +43,7 @@
   font-size: var(--font-size-body, 16px);
   font-weight: var(--font-weight-normal, 400);
   line-height: var(--line-height-body, 1.5);
-  color: var(--color-neutral-900, #1a1a1a);
+  color: #ffffff; /* DRAMATIC TEST: White text on colored background */
   transition: background-color 0.2s ease;
 }
 

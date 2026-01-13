@@ -10,7 +10,7 @@
   max-width: 100%;
   margin: 0;
   padding: var(--spacing-scale-64, 64px) var(--spacing-xl, 32px);
-  background-color: var(--color-neutral-900, #1a1a1a);
+  background-color: #ff6b6b; /* DRAMATIC TEST: Bright red background */
   background-image: url('./hero-background.png');
   background-size: cover;
   background-position: center;
@@ -49,7 +49,7 @@
   font-size: var(--typography-heading-40-size, 40px);
   font-weight: var(--typography-weight-bold, 700);
   line-height: 64px; /* Fixed: Figma value is 64px, not variable */
-  color: #f0f0f0; /* Test: Slight gray for PR comment test */
+  color: #ffeb3b; /* DRAMATIC TEST: Bright yellow text */
 }
 
 /* Hero Body Text */
