@@ -53,7 +53,7 @@ jobs:
         id: chromatic
         uses: chromaui/action@v1
         with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          projectToken: ${{ secrets.CHROMATIC_STORYBOOK_TOKEN }}
           buildScriptName: build-storybook
           exitZeroOnChanges: true
           exitOnceUploaded: true
@@ -72,7 +72,7 @@ jobs:
             BUILD_NUMBER=$(echo "$BUILD_URL" | grep -oP 'number=\K\d+' || echo "")
             
             # Get appId from secrets or URL
-            APP_ID=$(echo "$BUILD_URL" | grep -oP 'appId=\K[^&]+' || echo "${{ secrets.CHROMATIC_APP_ID }}")
+            APP_ID=$(echo "$BUILD_URL" | grep -oP 'appId=\K[^&]+' || echo "${{ secrets.CHROMATIC_STORYBOOK_APP_ID }}")
             
             if [ -n "$BUILD_NUMBER" ] && [ -n "$APP_ID" ]; then
               CHROMATIC_URL="https://www.chromatic.com/build?appId=${APP_ID}&number=${BUILD_NUMBER}"
@@ -158,20 +158,20 @@ jobs:
         id: chromatic_upload
         if: always() && steps.tests.outcome == 'success'
         env:
-          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          CHROMATIC_PLAYWRIGHT_TOKEN: ${{ secrets.CHROMATIC_PLAYWRIGHT_TOKEN }}
         run: |
           echo "📤 Uploading to Chromatic..."
-          npm run chromatic:upload > chromatic-output.txt 2>&1 || true
+          npm run chromatic:playwright > chromatic-output.txt 2>&1 || true
           
           # Extract build number from Chromatic output
           BUILD_NUMBER=$(grep -oP '(?:Build|build) \K\d+' chromatic-output.txt | head -1 || echo "")
           
           # Construct Chromatic build URL
           if [ -n "$BUILD_NUMBER" ]; then
-            APP_ID="${{ secrets.CHROMATIC_APP_ID }}"
+            APP_ID="${{ secrets.CHROMATIC_PLAYWRIGHT_APP_ID }}"
             BUILD_URL="https://www.chromatic.com/build?appId=${APP_ID}&number=${BUILD_NUMBER}"
           else
-            APP_ID="${{ secrets.CHROMATIC_APP_ID }}"
+            APP_ID="${{ secrets.CHROMATIC_PLAYWRIGHT_APP_ID }}"
             BUILD_URL="https://www.chromatic.com/builds?appId=${APP_ID}"
           fi
           

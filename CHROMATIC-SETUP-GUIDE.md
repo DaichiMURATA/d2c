@@ -20,15 +20,26 @@
 #### 設定手順:
 1. GitHub リポジトリ → **Settings** → **Secrets and variables** → **Actions**
 2. **New repository secret** をクリック
-3. 以下の2つを追加:
+3. 以下の4つを追加:
 
 | Secret名 | 値 | 説明 |
 |---------|-----|------|
-| `CHROMATIC_PROJECT_TOKEN` | `chpt_XXXXXXXXXXXX` | ChromaticプロジェクトのToken |
-| `CHROMATIC_APP_ID` | `69606830af12af0596be2ea1` | ChromaticのApp ID |
+| `CHROMATIC_STORYBOOK_TOKEN` | `chpt_XXXXXXXXXXXX` | Chromatic Storybookプロジェクトのトークン |
+| `CHROMATIC_STORYBOOK_APP_ID` | `69606830af12af0596be2ea1` | Chromatic StorybookのApp ID |
+| `CHROMATIC_PLAYWRIGHT_TOKEN` | `chpt_YYYYYYYYYYYY` | Chromatic Playwrightプロジェクトのトークン |
+| `CHROMATIC_PLAYWRIGHT_APP_ID` | `ZZZZZZZZZZZZZZZZZZZZZZZZ` | Chromatic PlaywrightのApp ID |
+
+#### プロジェクト構成:
+- **Storybook プロジェクト**: ブロックコンポーネントのビジュアルテスト（Layer 1）
+- **Playwright プロジェクト**: E2Eページテスト（Layer 2）
 
 #### Tokenの取得方法:
-- Chromatic Dashboard → **Manage** → **Configure** → **Project token**をコピー
+1. **Storybookプロジェクト**: 
+   - Chromatic Dashboard → プロジェクト選択 → **Manage** → **Configure** → **Project token**をコピー
+   
+2. **Playwrightプロジェクト**: 
+   - Chromaticで新しいプロジェクトを作成（プロジェクトタイプ: **Playwright**）
+   - **Manage** → **Configure** → **Project token**をコピー
 
 #### App IDの取得方法:
 - Chromatic DashboardのURLから取得: `https://www.chromatic.com/builds?appId=XXXXX`
@@ -39,17 +50,24 @@
 
 GitHub Secretsを設定する前に、ローカルでテストすることもできます：
 
+#### Storybookプロジェクト（Layer 1）:
 ```bash
 # 環境変数を設定
-export CHROMATIC_PROJECT_TOKEN="chpt_XXXXXXXXXXXX"
+export CHROMATIC_STORYBOOK_TOKEN="chpt_XXXXXXXXXXXX"
 
-# Storybookをビルド（Layer 1）
+# Storybookをビルド＆アップロード
 npm run build-storybook
-npm run chromatic
+npm run chromatic:storybook
+```
 
-# Playwright E2Eテスト（Layer 2）
+#### Playwrightプロジェクト（Layer 2）:
+```bash
+# 環境変数を設定
+export CHROMATIC_PLAYWRIGHT_TOKEN="chpt_YYYYYYYYYYYY"
+
+# Playwright E2Eテスト＆アップロード
 SOURCE_URL=https://main--figma-design-to-eds-code--daichimurata.aem.live npm run test:chromatic
-npm run chromatic:upload
+npm run chromatic:playwright
 ```
 
 ---
@@ -194,7 +212,7 @@ PR作成後、GitHub Actionsが自動的に以下のコメントを追加しま�
 
 ## 🔧 トラブルシューティング
 
-### ❌ `CHROMATIC_PROJECT_TOKEN` が見つからない
+### ❌ `CHROMATIC_STORYBOOK_TOKEN` または `CHROMATIC_PLAYWRIGHT_TOKEN` が見つからない
 
 **原因**: GitHub Secretsが未設定  
 **解決**: 上記の「GitHub Secretsの設定」を実施
@@ -216,7 +234,7 @@ npm run build-storybook
 ### ❌ Chromatic Buildが表示されない
 
 **原因**: App IDが未設定  
-**解決**: `CHROMATIC_APP_ID` Secretを追加
+**解決**: `CHROMATIC_STORYBOOK_APP_ID` と `CHROMATIC_PLAYWRIGHT_APP_ID` Secretを追加
 
 ---
 
@@ -232,11 +250,22 @@ npm run build-storybook
 
 ## ✅ セットアップ完了チェックリスト
 
-- [ ] Chromaticプロジェクトを作成
-- [ ] `CHROMATIC_PROJECT_TOKEN` Secretを設定
-- [ ] `CHROMATIC_APP_ID` Secretを設定
+### Storybookプロジェクト（Layer 1）
+- [ ] Chromatic Storybookプロジェクトを作成
+- [ ] `CHROMATIC_STORYBOOK_TOKEN` Secretを設定
+- [ ] `CHROMATIC_STORYBOOK_APP_ID` Secretを設定
+- [ ] ローカルで初回パブリッシュ完了
+
+### Playwrightプロジェクト（Layer 2）
+- [ ] Chromatic Playwrightプロジェクトを作成
+- [ ] `CHROMATIC_PLAYWRIGHT_TOKEN` Secretを設定
+- [ ] `CHROMATIC_PLAYWRIGHT_APP_ID` Secretを設定
+- [ ] ローカルで初回パブリッシュ完了
+
+### 動作確認
 - [ ] テストPRを作成して動作確認
-- [ ] Chromaticダッシュボードでビジュアル差分を確認
+- [ ] Chromaticダッシュボード（Storybook）でビジュアル差分を確認
+- [ ] Chromaticダッシュボード（Playwright）でビジュアル差分を確認
 - [ ] Baselineを承認
 
 セットアップが完了したら、このチェックリストを完了し、Visual Regression Testingを運用に乗せましょう！🎉

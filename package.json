@@ -12,10 +12,9 @@
     "extract-figma-tokens": "node scripts/extract-figma-tokens.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "chromatic": "npx chromatic --project-token=${CHROMATIC_PROJECT_TOKEN}",
+    "chromatic:storybook": "npx chromatic --project-token=${CHROMATIC_STORYBOOK_TOKEN}",
     "test:chromatic": "npx playwright test --config=chromatic.config.js",
-    "chromatic:upload": "npx chromatic --playwright --exit-zero-on-changes",
-    "chromatic:e2e": "npm run test:chromatic && npm run chromatic:upload"
+    "chromatic:playwright": "npx chromatic --playwright --project-token=${CHROMATIC_PLAYWRIGHT_TOKEN} --exit-zero-on-changes"
   },
   "repository": {
     "type": "git",
