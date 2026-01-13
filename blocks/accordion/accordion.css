@@ -31,7 +31,7 @@
 .accordion-button {
   width: 100%;
   padding: var(--spacing-m, 16px) var(--spacing-l, 24px);
-  background-color: #e3f2fd; /* Test: Light blue background for PR workflow */
+  background-color: var(--color-neutral-0, #ffffff); /* Revert to white for PR test */
   border: none;
   text-align: left;
   cursor: pointer;
