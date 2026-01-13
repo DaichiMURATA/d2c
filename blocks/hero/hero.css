@@ -46,21 +46,10 @@
   margin: 0;
   padding-bottom: var(--spacing-scale-48, 48px);
   font-family: var(--font-family-body, 'Noto Sans JP', sans-serif);
-  font-size: 56px;
+  font-size: var(--typography-heading-40-size, 40px);
   font-weight: var(--typography-weight-bold, 700);
-  line-height: 72px;
-  color: #ffd700;
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
-  }
-  to {
-    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.6);
-  }
+  line-height: 64px; /* Fixed: Figma value is 64px, not variable */
+  color: var(--color-neutral-0, #ffffff);
 }
 
 /* Hero Body Text */
