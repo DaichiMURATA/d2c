@@ -76,8 +76,6 @@ jobs:
           npx chromatic \
             --project-token=${{ secrets.CHROMATIC_STORYBOOK_TOKEN }} \
             --storybook-build-dir=storybook-static \
-            --only-changed \
-            --untraced \
             $AUTO_ACCEPT > chromatic-storybook-output.txt 2>&1 || true
           
           # Display output
