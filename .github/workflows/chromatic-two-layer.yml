@@ -154,10 +154,10 @@ jobs:
       build_number: ${{ steps.chromatic_upload.outputs.build_number }}
     
     env:
-      # EDS URL Pattern: https://{branch}--figma-design-to-eds-code--daichimurata.aem.live/
+      # EDS URL Pattern: https://{branch}--d2c--daichimurata.aem.live/
       # Add cache busting parameter to ensure fresh content
-      SOURCE_URL: https://${{ github.head_ref || github.ref_name }}--figma-design-to-eds-code--daichimurata.aem.live?cache=bust
-      TARGET_URL: https://${{ github.base_ref || 'main' }}--figma-design-to-eds-code--daichimurata.aem.live
+      SOURCE_URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live?cache=bust
+      TARGET_URL: https://${{ github.base_ref || 'main' }}--d2c--daichimurata.aem.live
     
     steps:
       - name: Checkout repository
@@ -331,8 +331,8 @@ jobs:
               body += '- 📄 Test pages defined in `chromatic-pages.config.json`\n';
               body += `- Source: \`${{ github.head_ref || github.ref_name }}\`\n`;
               body += `- Target: \`${{ github.base_ref || 'main' }}\`\n`;
-              body += `- Source URL: https://${{ github.head_ref || github.ref_name }}--figma-design-to-eds-code--daichimurata.aem.live/\n`;
-              body += `- Target URL: https://${{ github.base_ref || 'main' }}--figma-design-to-eds-code--daichimurata.aem.live/\n`;
+              body += `- Source URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live/\n`;
+              body += `- Target URL: https://${{ github.base_ref || 'main' }}--d2c--daichimurata.aem.live/\n`;
             } else if (layer2Status === 'skipped') {
               body += '⏭️ **Skipped** - Layer 2 not requested\n';
             } else {

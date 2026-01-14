@@ -1,6 +1,6 @@
 {
   "$schema": "./chromatic-pages.schema.json",
-  "baseUrl": "https://main--figma-design-to-eds-code--daichimurata.aem.live",
+  "baseUrl": "https://main--d2c--daichimurata.aem.live",
   "pages": [
     {
       "name": "homepage",

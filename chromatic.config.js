@@ -1,14 +1,14 @@
 /**
- * Chromatic + Playwright Configuration for figma-design-to-eds-code
+ * Chromatic + Playwright Configuration for d2c
  * 
- * EDS URL Pattern: https://{branch}--figma-design-to-eds-code--daichimurata.aem.live/
+ * EDS URL Pattern: https://{branch}--d2c--daichimurata.aem.live/
  * 
  * Usage:
  *   # Local testing
  *   npx playwright test --config=chromatic.config.js
  *   
  *   # Test specific branch
- *   SOURCE_URL=https://testbranch--figma-design-to-eds-code--daichimurata.aem.live npx playwright test --config=chromatic.config.js
+ *   SOURCE_URL=https://testbranch--d2c--daichimurata.aem.live npx playwright test --config=chromatic.config.js
  *   
  *   # Upload to Chromatic
  *   npx chromatic --playwright
@@ -33,8 +33,8 @@ export default defineConfig({
   
   use: {
     // Base URL - EDS URL pattern
-    // Pattern: https://{branch}--figma-design-to-eds-code--daichimurata.aem.live/
-    baseURL: process.env.SOURCE_URL || 'https://main--figma-design-to-eds-code--daichimurata.aem.live',
+    // Pattern: https://{branch}--d2c--daichimurata.aem.live/
+    baseURL: process.env.SOURCE_URL || 'https://main--d2c--daichimurata.aem.live',
     
     // Browser settings
     viewport: { width: 1280, height: 720 },

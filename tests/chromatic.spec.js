@@ -1,5 +1,5 @@
 /**
- * Chromatic Visual Regression Test for figma-design-to-eds-code
+ * Chromatic Visual Regression Test for d2c
  * 
  * このテストは chromatic-pages.config.json の設定に基づいて動的に生成されます。
  * テスト対象ページを追加・削除する場合は、設定ファイルを編集してください。
@@ -21,7 +21,7 @@ const config = JSON.parse(readFileSync(configPath, 'utf-8'));
 // 環境変数でbaseURLを上書き可能
 const baseURL = process.env.SOURCE_URL || config.baseUrl;
 
-test.describe('figma-design-to-eds-code Visual Regression', () => {
+test.describe('d2c Visual Regression', () => {
   // 設定ファイルの各ページに対してテストを生成
   for (const pageConfig of config.pages) {
     for (const viewport of pageConfig.viewports) {
