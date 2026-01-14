@@ -100,13 +100,14 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 /* Desktop Styles */
-@media (min-width: 900px) {
+@media (width >= 900px) {
   .tabs {
     margin: var(--spacing-scale-64, 64px) 0;
   }

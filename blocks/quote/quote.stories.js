@@ -26,7 +26,7 @@ const createQuoteBlock = ({ hasAuthor = false }) => {
   const quoteText = document.createElement('p');
   quoteText.textContent = 'This is an inspiring quote that conveys important information or wisdom.';
   blockquote.appendChild(quoteText);
-  
+
   if (hasAuthor) {
     const author = document.createElement('p');
     const cite = document.createElement('cite');
@@ -34,7 +34,7 @@ const createQuoteBlock = ({ hasAuthor = false }) => {
     author.appendChild(cite);
     blockquote.appendChild(author);
   }
-  
+
   block.appendChild(blockquote);
 
   return block;

@@ -46,7 +46,7 @@ const createHeroBlock = ({ heading = 'Heading in Block' }) => {
 
   // Text cell (only heading, matching Figma)
   const textCell = document.createElement('div');
-  
+
   const h1 = document.createElement('h1');
   h1.textContent = heading;
   textCell.appendChild(h1);

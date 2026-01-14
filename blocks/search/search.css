@@ -32,7 +32,7 @@
 .search-button {
   padding: var(--spacing-m, 16px) var(--spacing-l, 24px);
   background-color: var(--color-primary-500, #0078d4);
-  color: var(--color-neutral-0, #ffffff);
+  color: var(--color-neutral-0, #fff);
   border: none;
   border-radius: var(--size-radius-4, 4px);
   font-size: var(--typography-body-16-size, 16px);

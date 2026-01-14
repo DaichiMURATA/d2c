@@ -23,13 +23,13 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'embed';
-  
+
   const row = document.createElement('div');
   const cell = document.createElement('div');
   cell.textContent = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
   row.appendChild(cell);
   block.appendChild(row);
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);

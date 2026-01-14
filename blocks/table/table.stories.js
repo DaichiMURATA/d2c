@@ -23,33 +23,33 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'table';
-  
+
   // Header row
   const headerRow = document.createElement('div');
-  ['Name', 'Role', 'Email'].forEach(header => {
+  ['Name', 'Role', 'Email'].forEach((header) => {
     const cell = document.createElement('div');
     cell.textContent = header;
     headerRow.appendChild(cell);
   });
   block.appendChild(headerRow);
-  
+
   // Data rows
   const data = [
     ['Alice', 'Developer', 'alice@example.com'],
     ['Bob', 'Designer', 'bob@example.com'],
     ['Charlie', 'Manager', 'charlie@example.com'],
   ];
-  
-  data.forEach(rowData => {
+
+  data.forEach((rowData) => {
     const row = document.createElement('div');
-    rowData.forEach(value => {
+    rowData.forEach((value) => {
       const cell = document.createElement('div');
       cell.textContent = value;
       row.appendChild(cell);
     });
     block.appendChild(row);
   });
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);

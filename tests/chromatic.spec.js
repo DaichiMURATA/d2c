@@ -1,6 +1,6 @@
 /**
  * Chromatic Visual Regression Test for d2c
- * 
+ *
  * このテストは chromatic-pages.config.json の設定に基づいて動的に生成されます。
  * テスト対象ページを追加・削除する場合は、設定ファイルを編集してください。
  */
@@ -26,39 +26,39 @@ test.describe('d2c Visual Regression', () => {
   for (const pageConfig of config.pages) {
     for (const viewport of pageConfig.viewports) {
       const testName = `${pageConfig.name} - ${viewport.name}`;
-      
+
       test(testName, async ({ page }, testInfo) => {
         // ビューポートを設定
-        await page.setViewportSize({ 
-          width: viewport.width, 
-          height: viewport.height 
+        await page.setViewportSize({
+          width: viewport.width,
+          height: viewport.height,
         });
-        
+
         // ページに移動
         const fullUrl = `${baseURL}${pageConfig.path}`;
         console.log(`📱 Navigating to: ${fullUrl} (${viewport.width}x${viewport.height})`);
-        
+
         const navigationOptions = {
-          timeout: 30000
+          timeout: 30000,
         };
-        
+
         if (pageConfig.waitForNetworkIdle) {
           navigationOptions.waitUntil = 'networkidle';
         }
-        
+
         await page.goto(fullUrl, navigationOptions);
-        
+
         // 追加の待機時間
         if (pageConfig.additionalWaitTime) {
           await page.waitForTimeout(pageConfig.additionalWaitTime);
         }
-        
+
         console.log('📸 Taking Chromatic snapshot...');
-        
+
         // Chromaticスナップショットを取得
         const snapshotName = `${pageConfig.name}-${viewport.name}`;
         await takeSnapshot(page, snapshotName, testInfo);
-        
+
         console.log(`✅ Chromatic snapshot captured: ${snapshotName}`);
       });
     }

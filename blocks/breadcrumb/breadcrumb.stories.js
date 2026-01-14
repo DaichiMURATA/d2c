@@ -23,18 +23,18 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'breadcrumb';
-  
+
   const breadcrumbData = [
     { text: 'Home', href: '/' },
     { text: 'Products', href: '/products' },
     { text: 'Category', href: '/products/category' },
     { text: 'Current Page', href: null },
   ];
-  
-  breadcrumbData.forEach(item => {
+
+  breadcrumbData.forEach((item) => {
     const row = document.createElement('div');
     const cell = document.createElement('div');
-    
+
     if (item.href) {
       const link = document.createElement('a');
       link.href = item.href;
@@ -43,11 +43,11 @@ const Template = () => {
     } else {
       cell.textContent = item.text;
     }
-    
+
     row.appendChild(cell);
     block.appendChild(row);
   });
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);

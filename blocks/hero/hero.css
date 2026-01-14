@@ -37,7 +37,7 @@
   flex-direction: column;
   gap: var(--spacing-m, 16px);
   justify-content: flex-start;
-  color: var(--color-neutral-0, #ffffff);
+  color: var(--color-neutral-0, #fff);
 }
 
 /* Hero Heading */
@@ -58,7 +58,7 @@
   margin: 0;
   font-size: var(--typography-body-22-size, 22px);
   line-height: var(--typography-body-22-line-height, 1.6);
-  color: var(--color-neutral-0, #ffffff);
+  color: var(--color-neutral-0, #fff);
 }
 
 /* Hero CTA */
@@ -70,7 +70,7 @@
   display: inline-block;
   padding: var(--spacing-m, 16px) var(--spacing-xl, 32px);
   background-color: var(--color-primary-500, #0078d4);
-  color: var(--color-neutral-0, #ffffff);
+  color: var(--color-neutral-0, #fff);
   text-decoration: none;
   border-radius: var(--border-radius-lg, 30px);
   font-weight: var(--font-weight-bold, 700);
@@ -92,7 +92,7 @@
 }
 
 /* Desktop Layout */
-@media (min-width: 900px) {
+@media (width >= 900px) {
   .hero {
     padding: var(--spacing-scale-64, 64px) var(--spacing-xl, 32px);
     min-height: 480px;
@@ -116,7 +116,7 @@
 }
 
 /* Tablet Layout */
-@media (min-width: 600px) and (max-width: 899px) {
+@media (width >= 600px) and (width <= 899px) {
   .hero {
     padding: var(--spacing-scale-48, 48px) var(--spacing-l, 24px);
     min-height: 440px;

@@ -8,7 +8,7 @@
 export default function decorate(block) {
   const cols = [...block.firstElementChild.children];
   block.classList.add(`columns-${cols.length}-cols`);
-  
+
   // Setup image columns (Boilerplate pattern)
   [...block.children].forEach((row) => {
     [...row.children].forEach((col) => {

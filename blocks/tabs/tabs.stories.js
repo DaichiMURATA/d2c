@@ -26,7 +26,7 @@ const createTabsBlock = ({ activeTab = 0 }) => {
   // Tab list
   const tabList = document.createElement('div');
   tabList.setAttribute('role', 'tablist');
-  
+
   ['Tab 1', 'Tab 2', 'Tab 3'].forEach((title, index) => {
     const tab = document.createElement('button');
     tab.setAttribute('role', 'tab');

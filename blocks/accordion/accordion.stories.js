@@ -181,7 +181,7 @@ export const HoverExpanded = {
       const buttons = block.querySelectorAll('.accordion-button');
       if (buttons[2]) {
         buttons[2].click(); // Open the item
-        
+
         // Apply hover state after opening
         setTimeout(() => {
           buttons[2].classList.add('hover-simulation');

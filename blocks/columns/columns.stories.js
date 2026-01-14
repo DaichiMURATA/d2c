@@ -28,20 +28,20 @@ const createColumnsBlock = ({ columnCount = 2 }) => {
   block.className = 'columns';
 
   const row = document.createElement('div');
-  
+
   for (let i = 0; i < columnCount; i++) {
     const cell = document.createElement('div');
     const heading = document.createElement('h3');
     heading.textContent = `Column ${i + 1}`;
     cell.appendChild(heading);
-    
+
     const para = document.createElement('p');
     para.textContent = 'This is content for this column.';
     cell.appendChild(para);
-    
+
     row.appendChild(cell);
   }
-  
+
   block.appendChild(row);
   return block;
 };
