@@ -23,7 +23,7 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'search';
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);

@@ -20,7 +20,7 @@
 .accordion-item {
   border: none;
   border-bottom: 1px solid var(--color-neutral-200, #e5e5e5);
-  background-color: var(--color-neutral-0, #ffffff);
+  background-color: var(--color-neutral-0, #fff);
 }
 
 .accordion-item:last-child {
@@ -31,7 +31,7 @@
 .accordion-button {
   width: 100%;
   padding: var(--spacing-m, 16px) var(--spacing-l, 24px);
-  background-color: var(--color-neutral-0, #ffffff);
+  background-color: var(--color-neutral-0, #fff);
   border: none;
   text-align: left;
   cursor: pointer;
@@ -81,7 +81,7 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
-  background-color: var(--color-neutral-0, #ffffff);
+  background-color: var(--color-neutral-0, #fff);
 }
 
 .accordion-panel:not([hidden]) {
@@ -101,7 +101,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .accordion-button {
     padding: var(--spacing-s, 12px) var(--spacing-m, 16px);
     font-size: var(--font-size-body-sm, 14px);

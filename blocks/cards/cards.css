@@ -20,7 +20,7 @@
 .cards > ul > li.card {
   display: flex;
   flex-direction: column;
-  background-color: var(--color-neutral-0, #ffffff);
+  background-color: var(--color-neutral-0, #fff);
   border: 1px solid var(--color-neutral-200, #e5e5e5);
   border-radius: var(--size-radius-8, 8px);
   overflow: hidden;
@@ -28,7 +28,7 @@
 }
 
 .cards > ul > li.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
   transform: translateY(-2px);
 }
 
@@ -69,7 +69,7 @@
   display: inline-block;
   padding: var(--spacing-s, 12px) var(--spacing-l, 24px);
   background-color: var(--color-primary-500, #0078d4);
-  color: var(--color-neutral-0, #ffffff);
+  color: var(--color-neutral-0, #fff);
   text-decoration: none;
   border-radius: var(--size-radius-30, 30px);
   font-weight: var(--font-weight-bold, 700);
@@ -86,7 +86,7 @@
 }
 
 /* Desktop Styles */
-@media (min-width: 900px) {
+@media (width >= 900px) {
   .cards {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--spacing-xl, 32px);
@@ -99,7 +99,7 @@
 }
 
 /* Tablet Styles */
-@media (min-width: 600px) and (max-width: 899px) {
+@media (width >= 600px) and (width <= 899px) {
   .cards {
     grid-template-columns: repeat(2, 1fr);
   }

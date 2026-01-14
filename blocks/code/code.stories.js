@@ -23,13 +23,13 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'code';
-  
+
   const row = document.createElement('div');
   const cell = document.createElement('div');
   cell.textContent = 'function hello() {\n  console.log("Hello, World!");\n}';
   row.appendChild(cell);
   block.appendChild(row);
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);

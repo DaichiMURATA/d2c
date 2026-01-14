@@ -39,7 +39,9 @@ Slideshow component for cycling through content items.
 /**
  * Creates EDS-style carousel block DOM structure
  */
-const createCarouselBlock = ({ slideCount = 3, hasContent = true, contentPosition = 'center', contentSize = 'full' }) => {
+const createCarouselBlock = ({
+  slideCount = 3, hasContent = true, contentPosition = 'center', contentSize = 'full',
+}) => {
   const block = document.createElement('div');
   block.className = 'carousel';
   if (contentPosition !== 'center') block.setAttribute('data-content-position', contentPosition);
@@ -47,7 +49,7 @@ const createCarouselBlock = ({ slideCount = 3, hasContent = true, contentPositio
 
   for (let i = 0; i < slideCount; i++) {
     const slide = document.createElement('div');
-    
+
     const img = document.createElement('img');
     img.src = carouselImageUrl;
     img.alt = `Slide ${i + 1}`;
@@ -91,7 +93,9 @@ const Template = (args) => {
 
 // Figma Variant 1: Single slide, full content, center
 export const SingleSlideFullContent = {
-  render: () => Template({ slideCount: 1, hasContent: true, contentPosition: 'center', contentSize: 'full' }),
+  render: () => Template({
+    slideCount: 1, hasContent: true, contentPosition: 'center', contentSize: 'full',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -99,7 +103,9 @@ export const SingleSlideFullContent = {
 
 // Figma Variant 2: Multiple slides, no content
 export const MultipleSlides = {
-  render: () => Template({ slideCount: 3, hasContent: false, contentPosition: 'none', contentSize: 'none' }),
+  render: () => Template({
+    slideCount: 3, hasContent: false, contentPosition: 'none', contentSize: 'none',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -107,7 +113,9 @@ export const MultipleSlides = {
 
 // Figma Variant 3: Multiple slides, small content, center
 export const MultipleSlidesSmallCenter = {
-  render: () => Template({ slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'small' }),
+  render: () => Template({
+    slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'small',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -115,7 +123,9 @@ export const MultipleSlidesSmallCenter = {
 
 // Figma Variant 4: Multiple slides, small content, right
 export const MultipleSlidesSmallRight = {
-  render: () => Template({ slideCount: 3, hasContent: true, contentPosition: 'right', contentSize: 'small' }),
+  render: () => Template({
+    slideCount: 3, hasContent: true, contentPosition: 'right', contentSize: 'small',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -123,7 +133,9 @@ export const MultipleSlidesSmallRight = {
 
 // Figma Variant 5: Multiple slides, small content, left
 export const MultipleSlidesSmallLeft = {
-  render: () => Template({ slideCount: 3, hasContent: true, contentPosition: 'left', contentSize: 'small' }),
+  render: () => Template({
+    slideCount: 3, hasContent: true, contentPosition: 'left', contentSize: 'small',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -131,7 +143,9 @@ export const MultipleSlidesSmallLeft = {
 
 // Figma Variant 6: Multiple slides, full content, center
 export const MultipleSlidesFullCenter = {
-  render: () => Template({ slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'full' }),
+  render: () => Template({
+    slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'full',
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },

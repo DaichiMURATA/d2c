@@ -34,14 +34,16 @@ Grid of card items, each with image, title, description, and optional CTA.
   },
 };
 
-const createCardsBlock = ({ cardCount = 3, hasImage = true, hasLink = false, isHover = false }) => {
+const createCardsBlock = ({
+  cardCount = 3, hasImage = true, hasLink = false, isHover = false,
+}) => {
   const block = document.createElement('div');
   block.className = 'cards';
   if (isHover) block.classList.add('hover-state');
 
   for (let i = 0; i < cardCount; i++) {
     const card = document.createElement('div');
-    
+
     // Image (conditional)
     if (hasImage) {
       const picture = document.createElement('picture');
@@ -98,7 +100,9 @@ const Template = (args) => {
 
 // Figma Variant 1: isImage=true, isLink=false, hover=false
 export const WithImageNoLink = {
-  render: () => Template({ cardCount: 3, hasImage: true, hasLink: false, isHover: false }),
+  render: () => Template({
+    cardCount: 3, hasImage: true, hasLink: false, isHover: false,
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -106,7 +110,9 @@ export const WithImageNoLink = {
 
 // Figma Variant 2: isImage=true, isLink=true, hover=true
 export const WithImageAndLinkHover = {
-  render: () => Template({ cardCount: 3, hasImage: true, hasLink: true, isHover: true }),
+  render: () => Template({
+    cardCount: 3, hasImage: true, hasLink: true, isHover: true,
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -114,7 +120,9 @@ export const WithImageAndLinkHover = {
 
 // Figma Variant 3: isImage=false, isLink=false, hover=false
 export const NoImageNoLink = {
-  render: () => Template({ cardCount: 3, hasImage: false, hasLink: false, isHover: false }),
+  render: () => Template({
+    cardCount: 3, hasImage: false, hasLink: false, isHover: false,
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },
@@ -122,7 +130,9 @@ export const NoImageNoLink = {
 
 // Figma Variant 4: isImage=true, isLink=true, hover=false
 export const WithImageAndLink = {
-  render: () => Template({ cardCount: 3, hasImage: true, hasLink: true, isHover: false }),
+  render: () => Template({
+    cardCount: 3, hasImage: true, hasLink: true, isHover: false,
+  }),
   parameters: {
     chromatic: { delay: 300 },
   },

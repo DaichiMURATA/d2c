@@ -22,7 +22,7 @@
 }
 
 /* Desktop - Side by side */
-@media (min-width: 900px) {
+@media (width >= 900px) {
   .columns {
     flex-direction: row;
     gap: var(--spacing-xl, 32px);
@@ -31,7 +31,7 @@
 }
 
 /* Tablet */
-@media (min-width: 600px) and (max-width: 899px) {
+@media (width >= 600px) and (width <= 899px) {
   .columns.columns-2 {
     flex-direction: row;
   }

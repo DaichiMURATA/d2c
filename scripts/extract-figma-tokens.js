@@ -19,15 +19,15 @@ function rgbaToHex(rgba) {
   const r = Math.round(rgba.r * 255);
   const g = Math.round(rgba.g * 255);
   const b = Math.round(rgba.b * 255);
-  const a = rgba.a;
-  
+  const { a } = rgba;
+
   const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  
+
   if (a < 1) {
     const alpha = Math.round(a * 255).toString(16).padStart(2, '0');
     return `${hex}${alpha}`;
   }
-  
+
   return hex;
 }
 
@@ -45,9 +45,9 @@ function toCSSVarName(name) {
 function formatValue(variable, valuesByMode, allVariables) {
   const type = variable.resolvedType;
   const value = valuesByMode[Object.keys(valuesByMode)[0]]; // Use first mode
-  
+
   if (!value) return null;
-  
+
   // Handle alias references - resolve them
   if (typeof value === 'object' && value.type === 'VARIABLE_ALIAS') {
     const aliasedVar = allVariables[value.id];
@@ -56,7 +56,7 @@ function formatValue(variable, valuesByMode, allVariables) {
     }
     return null; // Can't resolve alias
   }
-  
+
   switch (type) {
     case 'COLOR':
       return rgbaToHex(value);
@@ -88,10 +88,10 @@ function groupVariables(variables) {
     effects: [],
     other: [],
   };
-  
+
   Object.entries(variables).forEach(([id, variable]) => {
     const name = variable.name.toLowerCase();
-    
+
     if (name.startsWith('color/') || name.includes('color')) {
       groups.colors.push({ id, ...variable });
     } else if (name.startsWith('typography/')) {
@@ -108,7 +108,7 @@ function groupVariables(variables) {
       groups.other.push({ id, ...variable });
     }
   });
-  
+
   return groups;
 }
 
@@ -130,85 +130,85 @@ function generateCSS(groups, allVariables) {
 
   // Colors
   if (groups.colors.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Colors\n`;
-    css += `     ======================================== */\n`;
-    groups.colors.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Colors\n';
+    css += '     ======================================== */\n';
+    groups.colors.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
         css += `  ${name}: ${value};\n`;
       }
     });
-    css += `\n`;
+    css += '\n';
   }
-  
+
   // Typography
   if (groups.typography.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Typography\n`;
-    css += `     ======================================== */\n`;
-    groups.typography.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Typography\n';
+    css += '     ======================================== */\n';
+    groups.typography.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
         css += `  ${name}: ${value};\n`;
       }
     });
-    css += `\n`;
+    css += '\n';
   }
-  
+
   // Spacing
   if (groups.spacing.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Spacing\n`;
-    css += `     ======================================== */\n`;
-    groups.spacing.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Spacing\n';
+    css += '     ======================================== */\n';
+    groups.spacing.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
         css += `  ${name}: ${value};\n`;
       }
     });
-    css += `\n`;
+    css += '\n';
   }
-  
+
   // Border
   if (groups.border.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Border\n`;
-    css += `     ======================================== */\n`;
-    groups.border.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Border\n';
+    css += '     ======================================== */\n';
+    groups.border.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
         css += `  ${name}: ${value};\n`;
       }
     });
-    css += `\n`;
+    css += '\n';
   }
-  
+
   // Shadows
   if (groups.shadows.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Shadows & Effects\n`;
-    css += `     ======================================== */\n`;
-    groups.shadows.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Shadows & Effects\n';
+    css += '     ======================================== */\n';
+    groups.shadows.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
         css += `  ${name}: ${value};\n`;
       }
     });
-    css += `\n`;
+    css += '\n';
   }
-  
+
   // Other
   if (groups.other.length > 0) {
-    css += `  /* ========================================\n`;
-    css += `     Other\n`;
-    css += `     ======================================== */\n`;
-    groups.other.forEach(variable => {
+    css += '  /* ========================================\n';
+    css += '     Other\n';
+    css += '     ======================================== */\n';
+    groups.other.forEach((variable) => {
       const name = toCSSVarName(variable.name);
       const value = formatValue(variable, variable.valuesByMode, allVariables);
       if (value) {
@@ -216,9 +216,9 @@ function generateCSS(groups, allVariables) {
       }
     });
   }
-  
-  css += `}\n`;
-  
+
+  css += '}\n';
+
   return css;
 }
 
@@ -228,37 +228,37 @@ function generateCSS(groups, allVariables) {
 async function main() {
   try {
     console.log('🔍 Reading Figma Variables...');
-    
+
     const inputPath = path.join(__dirname, '..', 'figma-variables-raw.json');
     const rawData = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
-    
+
     if (!rawData.meta || !rawData.meta.variables) {
       throw new Error('Invalid Figma Variables data structure');
     }
-    
+
     console.log(`📊 Found ${Object.keys(rawData.meta.variables).length} variables`);
-    
+
     // Group variables by category
     const groups = groupVariables(rawData.meta.variables);
-    
+
     console.log(`  - Colors: ${groups.colors.length}`);
     console.log(`  - Typography: ${groups.typography.length}`);
     console.log(`  - Spacing: ${groups.spacing.length}`);
     console.log(`  - Border: ${groups.border.length}`);
     console.log(`  - Shadows: ${groups.shadows.length}`);
     console.log(`  - Other: ${groups.other.length}`);
-    
+
     // Generate CSS
     console.log('🎨 Generating CSS...');
     const css = generateCSS(groups, rawData.meta.variables);
-    
+
     // Write to file
     const outputPath = path.join(__dirname, '..', 'styles', 'design-tokens.css');
     fs.writeFileSync(outputPath, css);
-    
+
     console.log(`✅ Design tokens written to: ${outputPath}`);
     console.log(`📏 File size: ${(css.length / 1024).toFixed(2)}KB`);
-    
+
     // Also save a summary JSON
     const summaryPath = path.join(__dirname, '..', 'figma-variables-summary.json');
     const summary = {
@@ -274,7 +274,7 @@ async function main() {
       },
     };
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
-    
+
     console.log('✅ Complete!');
   } catch (error) {
     console.error('❌ Error:', error.message);

@@ -29,7 +29,7 @@ const Template = () => {
   const wrapper = document.createElement('div');
   const block = document.createElement('div');
   block.className = 'section-metadata';
-  
+
   // Metadata rows
   const bgRow = document.createElement('div');
   const bgKey = document.createElement('div');
@@ -39,7 +39,7 @@ const Template = () => {
   bgRow.appendChild(bgKey);
   bgRow.appendChild(bgValue);
   block.appendChild(bgRow);
-  
+
   wrapper.appendChild(block);
   section.appendChild(wrapper);
   main.appendChild(section);
