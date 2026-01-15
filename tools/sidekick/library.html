@@ -42,6 +42,24 @@
         }
       }
 
+      // Custom block templates with image placeholders
+      const blockTemplates = {
+        'Cards': `## Cards
+
+| ![Card Image](https://placehold.co/300x200) | ### Card Title<br><br>This is a card description. Add your content here.<br><br>[Learn More](#) |
+| ![Card Image](https://placehold.co/300x200) | ### Card Title<br><br>This is a card description. Add your content here.<br><br>[Learn More](#) |
+| ![Card Image](https://placehold.co/300x200) | ### Card Title<br><br>This is a card description. Add your content here.<br><br>[Learn More](#) |`,
+      };
+
+      // Listen for block insertion events
+      library.addEventListener('aem-lib-select', (event) => {
+        const { name } = event.detail || {};
+        if (blockTemplates[name]) {
+          // Override default template with custom one
+          event.detail.content = blockTemplates[name];
+        }
+      });
+
       document.body.prepend(library)
     </script>
   </body>
