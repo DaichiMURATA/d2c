@@ -1,0 +1,129 @@
+name: Auto-Update PR Description with Preview URLs
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  update-pr-description:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate Preview URLs
+        id: generate-urls
+        run: |
+          # ブランチ名を取得
+          BRANCH_NAME="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+          
+          # AEM.live Preview URLを生成
+          SOURCE_URL="https://${BRANCH_NAME}--d2c--daichimurata.aem.live/"
+          TARGET_URL="https://${TARGET_BRANCH}--d2c--daichimurata.aem.live/"
+          
+          echo "source_url=${SOURCE_URL}" >> $GITHUB_OUTPUT
+          echo "target_url=${TARGET_URL}" >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_OUTPUT
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📝 Generated Preview URLs:"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Source Branch: ${BRANCH_NAME}"
+          echo "Source URL: ${SOURCE_URL}"
+          echo "Target Branch: ${TARGET_BRANCH}"
+          echo "Target URL: ${TARGET_URL}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Get current PR body
+        id: get-pr-body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const currentBody = pr.body || '';
+            core.setOutput('current_body', currentBody);
+
+      - name: Update PR Description
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sourceUrl = '${{ steps.generate-urls.outputs.source_url }}';
+            const targetUrl = '${{ steps.generate-urls.outputs.target_url }}';
+            const branchName = '${{ steps.generate-urls.outputs.branch_name }}';
+            const targetBranch = '${{ steps.generate-urls.outputs.target_branch }}';
+            const currentBody = `${{ steps.get-pr-body.outputs.current_body }}`;
+            
+            // プレースホルダーを実際のURLに置き換え
+            let newBody = currentBody
+              .replace(/\{\{BRANCH_NAME\}\}/g, branchName)
+              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--d2c--daichimurata\.aem\.live\//g, sourceUrl);
+            
+            // もしプレースホルダーがない場合（手動で作成されたPR）、Preview URLセクションを追加
+            if (!newBody.includes('Preview URLs') && !newBody.includes('aem.live')) {
+              const previewSection = `
+            
+            ## 🔗 Preview URLs
+            
+            **Source Branch Preview (${branchName}):**
+            - ${sourceUrl}
+            
+            **Target Branch Preview (${targetBranch}):**
+            - ${targetUrl}
+            `;
+              newBody = newBody + previewSection;
+            }
+            
+            // PR Descriptionを更新
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              body: newBody
+            });
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('✅ PR Description updated with Preview URLs');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`Source: ${sourceUrl}`);
+            console.log(`Target: ${targetUrl}`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      - name: Add Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sourceUrl = '${{ steps.generate-urls.outputs.source_url }}';
+            const targetUrl = '${{ steps.generate-urls.outputs.target_url }}';
+            const branchName = '${{ steps.generate-urls.outputs.branch_name }}';
+            const targetBranch = '${{ steps.generate-urls.outputs.target_branch }}';
+            
+            const comment = `## 🔗 Preview URLs
+
+            Your changes have been deployed to AEM.live!
+
+            | Branch | Preview URL |
+            |--------|-------------|
+            | **${branchName}** (Source) | ${sourceUrl} |
+            | **${targetBranch}** (Target) | ${targetUrl} |
+
+            ### 🚀 Quick Links
+            - [View Source Preview](${sourceUrl})
+            - [View Target Preview](${targetUrl})
+
+            ---
+            *Preview URLs are automatically generated from the branch name.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
+            
+            console.log('✅ Preview URLs comment added to PR');
