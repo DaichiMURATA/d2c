@@ -32,20 +32,20 @@ export default function decorate(block) {
     [...li.children].forEach((div) => {
       // Image cell detection (Boilerplate logic)
       if (div.children.length === 1 && div.querySelector('picture')) {
-        div.className = 'card-image';
+        div.className = 'cards-card-image';
       } else {
-        div.className = 'card-body';
+        div.className = 'cards-card-body';
 
         // Apply semantic classes to content
         const heading = div.querySelector('h1, h2, h3, h4, h5, h6');
         if (heading) {
-          heading.classList.add('card-title');
+          heading.classList.add('cards-card-title');
         }
 
         const paragraphs = div.querySelectorAll('p');
         paragraphs.forEach((p) => {
           if (p.querySelector('a')) {
-            p.classList.add('card-cta');
+            p.classList.add('cards-card-cta');
           }
         });
       }
