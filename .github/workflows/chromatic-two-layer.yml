@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main, develop ]
   push:
-    branches: [ main ]
+    branches: [ develop ]
   workflow_dispatch:
     inputs:
       test_layer:
@@ -66,9 +66,9 @@ jobs:
             echo "⚠️ WARNING: CHROMATIC_APP_ID is empty or not set!"
           fi
           
-          # Add --auto-accept-changes for main branch pushes
+          # Add --auto-accept-changes for develop branch pushes
           AUTO_ACCEPT=""
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/develop" ]; then
             AUTO_ACCEPT="--auto-accept-changes"
             echo "🔄 Main branch push detected - will auto-accept changes as new baseline"
           fi
@@ -157,7 +157,7 @@ jobs:
       # EDS URL Pattern: https://{branch}--d2c--daichimurata.aem.live/
       # Add cache busting parameter to ensure fresh content
       SOURCE_URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live?cache=bust
-      TARGET_URL: https://${{ github.base_ref || 'main' }}--d2c--daichimurata.aem.live
+      TARGET_URL: https://${{ github.base_ref || 'develop' }}--d2c--daichimurata.aem.live
     
     steps:
       - name: Checkout repository
@@ -199,9 +199,9 @@ jobs:
             echo "⚠️ WARNING: CHROMATIC_APP_ID is empty or not set!"
           fi
           
-          # Add --auto-accept-changes for main branch pushes
+          # Add --auto-accept-changes for develop branch pushes
           AUTO_ACCEPT=""
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/develop" ]; then
             AUTO_ACCEPT="--auto-accept-changes"
             echo "🔄 Main branch push detected - will auto-accept changes as new baseline"
           fi
@@ -320,9 +320,9 @@ jobs:
               body += '- Screenshots captured and available in artifacts\n';
               body += '- 📄 Test pages defined in `chromatic-pages.config.json`\n';
               body += `- Source: \`${{ github.head_ref || github.ref_name }}\`\n`;
-              body += `- Target: \`${{ github.base_ref || 'main' }}\`\n`;
+              body += `- Target: \`${{ github.base_ref || 'develop' }}\`\n`;
               body += `- Source URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live/\n`;
-              body += `- Target URL: https://${{ github.base_ref || 'main' }}--d2c--daichimurata.aem.live/\n`;
+              body += `- Target URL: https://${{ github.base_ref || 'develop' }}--d2c--daichimurata.aem.live/\n`;
             } else if (layer2Status === 'skipped') {
               body += '⏭️ **Skipped** - Layer 2 not requested\n';
             } else {
