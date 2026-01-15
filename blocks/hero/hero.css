@@ -49,7 +49,7 @@
   font-size: var(--typography-heading-40-size, 40px);
   font-weight: var(--typography-weight-bold, 700);
   line-height: 64px; /* Fixed: Figma value is 64px, not variable */
-  color: #ff6b6b; /* Test: Changed from white to coral red for PR validation */
+  color: #4aed57;
 }
 
 /* Hero Body Text */
