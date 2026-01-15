@@ -20,10 +20,14 @@ jobs:
           BRANCH_NAME="${{ github.head_ref }}"
           TARGET_BRANCH="${{ github.base_ref }}"
           
-          # AEM.live Preview URLを生成
+          # AEM.page URL (PSI チェック用 - 短いキャッシュ)
+          TEST_URL="https://${BRANCH_NAME}--d2c--daichimurata.aem.page/"
+          
+          # AEM.live Preview URL (本番用 - 長いキャッシュ)
           SOURCE_URL="https://${BRANCH_NAME}--d2c--daichimurata.aem.live/"
           TARGET_URL="https://${TARGET_BRANCH}--d2c--daichimurata.aem.live/"
           
+          echo "test_url=${TEST_URL}" >> $GITHUB_OUTPUT
           echo "source_url=${SOURCE_URL}" >> $GITHUB_OUTPUT
           echo "target_url=${TARGET_URL}" >> $GITHUB_OUTPUT
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
@@ -33,6 +37,7 @@ jobs:
           echo "📝 Generated Preview URLs:"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "Source Branch: ${BRANCH_NAME}"
+          echo "Test URL (PSI): ${TEST_URL}"
           echo "Source URL: ${SOURCE_URL}"
           echo "Target Branch: ${TARGET_BRANCH}"
           echo "Target URL: ${TARGET_URL}"
@@ -52,6 +57,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const testUrl = '${{ steps.generate-urls.outputs.test_url }}';
             const sourceUrl = '${{ steps.generate-urls.outputs.source_url }}';
             const targetUrl = '${{ steps.generate-urls.outputs.target_url }}';
             const branchName = '${{ steps.generate-urls.outputs.branch_name }}';
@@ -61,13 +67,16 @@ jobs:
             // プレースホルダーを実際のURLに置き換え
             let newBody = currentBody
               .replace(/\{\{BRANCH_NAME\}\}/g, branchName)
+              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--d2c--daichimurata\.aem\.page\//g, testUrl)
               .replace(/https:\/\/\{\{BRANCH_NAME\}\}--d2c--daichimurata\.aem\.live\//g, sourceUrl);
             
             // もしプレースホルダーがない場合（手動で作成されたPR）、Preview URLセクションを追加
-            if (!newBody.includes('Preview URLs') && !newBody.includes('aem.live')) {
+            if (!newBody.includes('Preview URLs') && !newBody.includes('aem.live') && !newBody.includes('aem.page')) {
               const previewSection = `
             
             ## 🔗 Preview URLs
+            
+            **Test URL:** ${testUrl}
             
             **Source Branch Preview (${branchName}):**
             - ${sourceUrl}
@@ -89,6 +98,7 @@ jobs:
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('✅ PR Description updated with Preview URLs');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`Test URL: ${testUrl}`);
             console.log(`Source: ${sourceUrl}`);
             console.log(`Target: ${targetUrl}`);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -98,6 +108,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const testUrl = '${{ steps.generate-urls.outputs.test_url }}';
             const sourceUrl = '${{ steps.generate-urls.outputs.source_url }}';
             const targetUrl = '${{ steps.generate-urls.outputs.target_url }}';
             const branchName = '${{ steps.generate-urls.outputs.branch_name }}';
@@ -105,18 +116,27 @@ jobs:
             
             const comment = `## 🔗 Preview URLs
 
-            Your changes have been deployed to AEM.live!
+            Your changes have been deployed to AEM!
 
-            | Branch | Preview URL |
-            |--------|-------------|
+            ### 📋 Test URL (for PSI check)
+            **Test URL:** ${testUrl}
+
+            ### 🚀 Preview URLs
+            | Branch | Preview URL (aem.live) |
+            |--------|------------------------|
             | **${branchName}** (Source) | ${sourceUrl} |
             | **${targetBranch}** (Target) | ${targetUrl} |
 
-            ### 🚀 Quick Links
-            - [View Source Preview](${sourceUrl})
-            - [View Target Preview](${targetUrl})
+            ### 🔗 Quick Links
+            - [View Test URL (aem.page)](${testUrl}) - Fast updates, shorter cache
+            - [View Source Preview (aem.live)](${sourceUrl}) - Production-like
+            - [View Target Preview (aem.live)](${targetUrl}) - Current target
 
             ---
+            💡 **URL の違い:**
+            - \`aem.page\`: 開発用、短いキャッシュ、PSI チェック用
+            - \`aem.live\`: 本番用、長いキャッシュ、実際のプレビュー用
+
             *Preview URLs are automatically generated from the branch name.*`;
             
             await github.rest.issues.createComment({

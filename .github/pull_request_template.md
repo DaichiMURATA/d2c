@@ -12,6 +12,8 @@
 
 <!-- ⚠️ このセクションは自動的に生成されます / This section will be auto-generated -->
 
+**Test URL:** https://{{BRANCH_NAME}}--d2c--daichimurata.aem.page/
+
 **Source Branch Preview:**
 - https://{{BRANCH_NAME}}--d2c--daichimurata.aem.live/
 
