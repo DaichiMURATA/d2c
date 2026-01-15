@@ -23,7 +23,8 @@ const preview = {
         ],
       },
       // 違反を自動的に検出してハイライト
-      element: '#storybook-root',
+      // Storybook 9.x では 'element' → 'context' に変更
+      context: '#storybook-root',
       manual: false,
     },
     
