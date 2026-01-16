@@ -119,88 +119,129 @@ const createCarouselBlock = (slides) => {
 };
 
 /**
- * Story: Default (3 slides)
+ * Variant 1: Single slide with centered full-size content
+ * Figma: isSingle=true, isMultiple=false, isContent=true, contentPosition=center, contentSize=full
+ * Node ID: 9402:206
  */
-export const Default = {
-  render: () => {
-    const slides = [
-      sampleImages.slide1,
-      sampleImages.slide2,
-      sampleImages.slide3,
-    ];
-    return createCarouselBlock(slides);
-  },
-};
-
-/**
- * Story: Single Slide
- */
-export const SingleSlide = {
+export const SingleSlideCenteredFullContent = {
   render: () => {
     const slides = [sampleImages.slide1];
     return createCarouselBlock(slides);
   },
-};
-
-/**
- * Story: Two Slides
- */
-export const TwoSlides = {
-  render: () => {
-    const slides = [
-      sampleImages.slide1,
-      sampleImages.slide2,
-    ];
-    return createCarouselBlock(slides);
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9402:206',
+    },
   },
 };
 
 /**
- * Story: With Image Links
+ * Variant 2: Multiple slides without content
+ * Figma: isSingle=false, isMultiple=true, isContent=false, contentPosition=none, contentSize=none
+ * Node ID: 9392:121
  */
-export const WithImageLinks = {
-  render: () => {
-    const slides = [
-      {
-        ...sampleImages.slide1,
-        link: 'https://example.com/slide1',
-        linkTitle: 'Learn more about Slide 1',
-      },
-      {
-        ...sampleImages.slide2,
-        link: 'https://example.com/slide2',
-        linkTitle: 'Learn more about Slide 2',
-      },
-      {
-        ...sampleImages.slide3,
-        link: 'https://example.com/slide3',
-        linkTitle: 'Learn more about Slide 3',
-      },
-    ];
-    return createCarouselBlock(slides);
-  },
-};
-
-/**
- * Story: Many Slides (5)
- */
-export const ManySlides = {
+export const MultipleSlidesNoContent = {
   render: () => {
     const slides = [
       sampleImages.slide1,
       sampleImages.slide2,
       sampleImages.slide3,
-      {
-        pcImage: 'https://via.placeholder.com/1200x400/f8f8f8/505050?text=Slide+4+PC',
-        spImage: 'https://via.placeholder.com/600x400/f8f8f8/505050?text=Slide+4+SP',
-        alt: 'Slide 4',
-      },
-      {
-        pcImage: 'https://via.placeholder.com/1200x400/ff6b6b/ffffff?text=Slide+5+PC',
-        spImage: 'https://via.placeholder.com/600x400/ff6b6b/ffffff?text=Slide+5+SP',
-        alt: 'Slide 5',
-      },
     ];
     return createCarouselBlock(slides);
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9392:121',
+    },
+  },
+};
+
+/**
+ * Variant 3: Multiple slides with centered small content
+ * Figma: isSingle=false, isMultiple=true, isContent=true, contentPosition=center, contentSize=small
+ * Node ID: 9392:204
+ */
+export const MultipleSlidesContentCenterSmall = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+    ];
+    return createCarouselBlock(slides);
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9392:204',
+    },
+  },
+};
+
+/**
+ * Variant 4: Multiple slides with right-aligned small content
+ * Figma: isSingle=false, isMultiple=true, isContent=true, contentPosition=right, contentSize=small
+ * Node ID: 9392:238
+ */
+export const MultipleSlidesContentRightSmall = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+    ];
+    return createCarouselBlock(slides);
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9392:238',
+    },
+  },
+};
+
+/**
+ * Variant 5: Multiple slides with left-aligned small content
+ * Figma: isSingle=false, isMultiple=true, isContent=true, contentPosition=left, contentSize=small
+ * Node ID: 9392:271
+ */
+export const MultipleSlidesContentLeftSmall = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+    ];
+    return createCarouselBlock(slides);
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9392:271',
+    },
+  },
+};
+
+/**
+ * Variant 6: Multiple slides with centered full-size content
+ * Figma: isSingle=false, isMultiple=true, isContent=true, contentPosition=center, contentSize=full
+ * Node ID: 9392:123
+ */
+export const MultipleSlidesContentCenterFull = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+    ];
+    return createCarouselBlock(slides);
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/MJTwyRbE5EVdlci3UIwsut?node-id=9392:123',
+    },
   },
 };

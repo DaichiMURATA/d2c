@@ -10,15 +10,16 @@
   "components": {
     "carousel": {
       "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework?node-id=9392-122",
-      "nodeId": "9392-122",
+      "nodeId": "9392:122",
       "description": "Carousel block with auto-slide and navigation",
-      "variants": [
-        "Default",
-        "SingleSlide",
-        "TwoSlides",
-        "WithImageLinks",
-        "ManySlides"
-      ],
+      "variants": {
+        "SingleSlideCenteredFullContent": "9402:206",
+        "MultipleSlidesNoContent": "9392:121",
+        "MultipleSlidesContentCenterSmall": "9392:204",
+        "MultipleSlidesContentRightSmall": "9392:238",
+        "MultipleSlidesContentLeftSmall": "9392:271",
+        "MultipleSlidesContentCenterFull": "9392:123"
+      },
       "status": "generated",
       "lastUpdated": "2026-01-16"
     },
