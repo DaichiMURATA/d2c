@@ -11,6 +11,9 @@ helix-importer-ui
 # Visual comparison temporary files
 .visual-compare/
 .validation-screenshots/
+.visual-regression/actual/
+.visual-regression/diff/
+.visual-regression/report.html
 
 # Figma raw data
 figma-variables-raw.json
