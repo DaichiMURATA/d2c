@@ -10,6 +10,10 @@
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
     "extract-figma-tokens": "node scripts/extract-figma-tokens.js",
+    "extract-eds-spec": "node scripts/extract-eds-specification.js",
+    "discover-spec": "node scripts/discover-living-spec.js",
+    "aem:up": "aem up",
+    "aem:down": "aem down",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "chromatic:storybook": "npx chromatic --project-token=${CHROMATIC_STORYBOOK_TOKEN}",
@@ -27,6 +31,7 @@
   },
   "homepage": "https://github.com/adobe/aem-boilerplate#readme",
   "devDependencies": {
+    "@adobe/aem-cli": "^16.16.19",
     "@babel/eslint-parser": "7.28.6",
     "@chromatic-com/playwright": "^0.12.8",
     "@chromatic-com/storybook": "^4.0.1",

@@ -25,10 +25,21 @@ Generate EDS Block for "Accordion"
 - Figma provides visual design and variants
 - User Story provides detailed functional and accessibility requirements
 
-**Option C: Template-style Request**
+**Option C: Figma + Living Specification (Recommended for accurate HTML)**
 ```
 @figma https://www.figma.com/design/...?node-id=XXX
-@file docs/user-stories/hero-block.md  # Optional
+@file blocks/hero/hero.eds-spec.json
+
+Generate EDS Block
+```
+- Figma provides visual design
+- Living Specification provides exact HTML structure from EDS environment
+
+**Option D: Full Integration (Most Accurate)**
+```
+@figma https://www.figma.com/design/...?node-id=XXX
+@file docs/user-stories/hero-block.md
+@file blocks/hero/hero.eds-spec.json
 
 Generate EDS Block
 ```
@@ -50,6 +61,13 @@ When user provides inputs:
 - Block name (optional): Auto-detect from Figma component name or files
 
 **Information Extraction:**
+
+From Living Specification (if provided) - RECOMMENDED:
+- Exact HTML structure from EDS environment
+- Wrapper and Section classes
+- Content Bus Markdown → HTML conversion result
+- Data attributes (data-block-name, data-block-status)
+- Use `npm run discover-spec -- <block-name>` to auto-extract
 
 From Figma (via MCP) - Always:
 - Component name and Variants
@@ -73,6 +91,10 @@ From User Story (markdown) - If provided:
 - Generate test scenarios based on Figma Variants
 
 **Code Generation:**
+0. **Check for Living Specification** (RECOMMENDED):
+   - Look for `blocks/<name>/<name>.eds-spec.json`
+   - If exists, use as source of truth for HTML structure
+   - If not exists, suggest: `npm run discover-spec -- <block-name>`
 1. Read project context from `BLOCK-GENERATION-GUIDE.md`
 2. Read Visual Regression strategy from `VISUAL-REGRESSION-STRATEGY.md`
 3. Reference EDS Block Collection for standard patterns:
@@ -153,7 +175,10 @@ Generate EDS Block
 
 ### 6. Files to Read (In Order of Priority)
 
-1. **Figma design** (via MCP) - REQUIRED - Visual design and variants
+1. **Living Specification** (if available) - RECOMMENDED - Exact HTML structure from EDS
+   - `blocks/<name>/<name>.eds-spec.json`
+   - Extract via: `npm run discover-spec -- <block-name>`
+2. **Figma design** (via MCP) - REQUIRED - Visual design and variants
 2. **User Story markdown** (if provided) - OPTIONAL - Detailed requirements and test scenarios
 3. **BLOCK-GENERATION-GUIDE.md** - REQUIRED - Comprehensive block generation rules (PRIMARY REFERENCE)
 4. **VISUAL-REGRESSION-STRATEGY.md** - REQUIRED - Storybook story strategy for Chromatic
