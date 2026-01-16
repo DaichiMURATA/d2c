@@ -17,6 +17,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "validate-block": "node scripts/compare-figma-storybook.js",
+    "analyze-diff": "node scripts/analyze-diff-with-vision.js",
     "inspect-figma": "node scripts/inspect-figma-nodes.js",
     "extract-styles": "node scripts/extract-figma-styles.js",
     "download-assets": "node scripts/download-figma-assets.js",
