@@ -1,175 +1,258 @@
 /**
- * @file carousel.css
- * @description Styles for the Carousel block
- * @version 1.0.0
+ * Carousel Block Styles
  */
 
-/* Carousel Container */
 .carousel {
-  width: 100%;
-  max-width: 100%;
-  margin: var(--spacing-xl, 32px) 0;
+  max-width: 1200px;
+  padding: 40px 40px 40px 40px;
+  border-radius: 5px;
   position: relative;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.carousel-container {
+/* Slides Container */
+.carousel .carousel-slides-container {
   position: relative;
-  overflow: hidden;
   width: 100%;
 }
 
-/* Carousel Track */
-.carousel-track {
+.carousel .carousel-slides {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  transition: transform 0.3s ease-in-out;
-  width: 100%;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
 }
 
-/* Carousel Slide */
-.carousel-slide {
+.carousel .carousel-slides::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+/* Individual Slide */
+.carousel .carousel-slide {
   flex: 0 0 100%;
   min-width: 100%;
-  padding: var(--spacing-l, 24px);
-  box-sizing: border-box;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
+  scroll-snap-align: start;
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
-.carousel-slide.active {
+.carousel .carousel-slide.active {
   opacity: 1;
 }
 
-/* Slide Content */
-.carousel-slide img {
+.carousel .carousel-slide-image {
+  width: 100%;
+  position: relative;
+}
+
+.carousel .carousel-slide-image picture {
+  display: block;
+  width: 100%;
+}
+
+.carousel .carousel-slide-image picture img {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: var(--size-radius-8, 8px);
+  object-fit: cover;
 }
 
-.carousel-slide h2,
-.carousel-slide h3 {
-  margin-top: var(--spacing-m, 16px);
-  color: var(--color-neutral-900, #1a1a1a);
+/* デスクトップ画像はデフォルトで表示 */
+.carousel .carousel-slide-image picture[data-viewport="desktop"] {
+  display: block;
 }
 
-.carousel-slide p {
-  margin-top: var(--spacing-s, 12px);
-  color: var(--color-neutral-700, #4a4a4a);
+.carousel .carousel-slide-image picture[data-viewport="mobile"] {
+  display: none;
+}
+
+/* モバイルでは mobile 画像を表示 */
+@media (max-width: 768px) {
+  .carousel .carousel-slide-image picture[data-viewport="desktop"] {
+    display: none;
+  }
+
+  .carousel .carousel-slide-image picture[data-viewport="mobile"] {
+    display: block;
+  }
+}
+
+/* 画像リンクホバー効果 */
+.carousel .carousel-slide-image a {
+  display: block;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.carousel .carousel-slide-image a:hover img,
+.carousel .carousel-slide-image a:focus-visible img {
+  opacity: 0.85;
 }
 
 /* Navigation Buttons */
-.carousel-button {
+.carousel .carousel-navigation-buttons {
   position: absolute;
   top: 50%;
+  left: 0;
+  right: 0;
   transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+  padding: 0 var(--spacing-m, 16px);
+}
+
+.carousel .carousel-navigation-buttons button {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
   width: 48px;
   height: 48px;
-  background-color: var(--color-neutral-0, #fff);
-  border: 2px solid var(--color-neutral-200, #e5e5e5);
-  border-radius: var(--size-radius-full, 999px);
+  border-radius: 50%;
   font-size: 24px;
+  line-height: 1;
   cursor: pointer;
-  z-index: 10;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  color: var(--color-neutral-900, #1a1a1a);
 }
 
-.carousel-button:hover:not(:disabled) {
-  background-color: var(--color-primary-500, #0078d4);
-  color: var(--color-neutral-0, #fff);
-  border-color: var(--color-primary-500, #0078d4);
+.carousel .carousel-navigation-buttons button:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
 }
 
-.carousel-button:focus-visible {
-  outline: 2px solid var(--color-primary-500, #0078d4);
+.carousel .carousel-navigation-buttons button:focus-visible {
+  outline: 2px solid var(--link-color, #3b63fb);
   outline-offset: 2px;
 }
 
-.carousel-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.carousel .carousel-navigation-buttons button:active {
+  transform: scale(0.95);
 }
 
-.carousel-button-prev {
-  left: var(--spacing-m, 16px);
-}
-
-.carousel-button-next {
-  right: var(--spacing-m, 16px);
-}
-
-/* Indicators */
-.carousel-indicators {
+/* Slide Indicators */
+.carousel .carousel-indicators-nav {
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: var(--spacing-s, 12px);
-  margin-top: var(--spacing-l, 24px);
+  margin-top: var(--spacing-m, 16px);
+  padding: var(--spacing-s, 12px) 0;
 }
 
-.carousel-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--size-radius-full, 999px);
-  background-color: var(--color-neutral-200, #e5e5e5);
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.carousel .carousel-slide-indicators {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--spacing-xs, 8px);
+}
+
+.carousel .carousel-slide-indicator {
+  margin: 0;
   padding: 0;
 }
 
-.carousel-indicator:hover {
-  background-color: var(--color-neutral-700, #4a4a4a);
+.carousel .carousel-slide-indicator button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: var(--light-color, #e0e0e0);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  padding: 0;
 }
 
-.carousel-indicator.active {
-  background-color: var(--color-primary-500, #0078d4);
-  width: 24px;
+.carousel .carousel-slide-indicator button:hover {
+  background: var(--dark-color, #505050);
+  transform: scale(1.2);
 }
 
-.carousel-indicator:focus-visible {
-  outline: 2px solid var(--color-primary-500, #0078d4);
+.carousel .carousel-slide-indicator button:focus-visible {
+  outline: 2px solid var(--link-color, #3b63fb);
   outline-offset: 2px;
 }
 
-/* Desktop Styles */
-@media (width >= 900px) {
-  .carousel {
-    margin: var(--spacing-scale-64, 64px) 0;
+.carousel .carousel-slide-indicator.active button {
+  background: var(--link-color, #3b63fb);
+  width: 32px;
+  border-radius: 6px;
+}
+
+/* Play/Pause Button */
+.carousel .carousel-play-pause {
+  background: transparent;
+  border: 1px solid var(--dark-color, #505050);
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s ease-in-out;
+  color: var(--dark-color, #505050);
+}
+
+.carousel .carousel-play-pause:hover {
+  background: var(--light-color, #f8f8f8);
+  border-color: var(--link-color, #3b63fb);
+  color: var(--link-color, #3b63fb);
+}
+
+.carousel .carousel-play-pause:focus-visible {
+  outline: 2px solid var(--link-color, #3b63fb);
+  outline-offset: 2px;
+}
+
+.carousel .carousel-play-pause.playing {
+  color: var(--link-color, #3b63fb);
+  border-color: var(--link-color, #3b63fb);
+}
+
+/* Single Slide (no navigation) */
+.carousel:has(.carousel-slides > .carousel-slide:only-child) .carousel-navigation-buttons,
+.carousel:has(.carousel-slides > .carousel-slide:only-child) .carousel-indicators-nav {
+  display: none;
+}
+
+/* モバイル調整 */
+@media (max-width: 768px) {
+  .carousel .carousel-navigation-buttons {
+    padding: 0 var(--spacing-xs, 8px);
   }
 
-  .carousel-slide {
-    padding: var(--spacing-xl, 32px);
+  .carousel .carousel-navigation-buttons button {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
   }
 
-  .carousel-button {
-    width: 56px;
-    height: 56px;
-    font-size: 28px;
-  }
-
-  .carousel-button-prev {
-    left: var(--spacing-l, 24px);
-  }
-
-  .carousel-button-next {
-    right: var(--spacing-l, 24px);
+  .carousel .carousel-indicators-nav {
+    margin-top: var(--spacing-s, 12px);
   }
 }
 
+/* アクセシビリティ: 非表示スライドはキーボードフォーカス不可 */
+.carousel .carousel-slide[aria-hidden="true"] {
+  pointer-events: none;
+}
 
-/* ============================================
-   FIGMA-EXTRACTED ICON - Navigation arrow (left)
-   ============================================ */
-.carousel-button {
-  width: 16px;
-  height: 26px;
-  background-image: url('data:image/svg+xml;utf8,%3Csvg width='16' height='26' viewBox='0 0 16 26' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13 26L15.5754 23.4245L5.15091 13L15.5754 2.57547L13 0L-3.24249e-05 13L13 26Z' fill='white'/%3E%3C/svg%3E');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  display: inline-block;
+.carousel .carousel-slide[aria-hidden="true"] a,
+.carousel .carousel-slide[aria-hidden="true"] button {
+  tabindex: -1;
 }

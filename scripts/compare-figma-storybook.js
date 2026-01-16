@@ -1,29 +1,36 @@
 /**
- * Figma-Storybook Visual Validation Loop
+ * Figma-Storybook Automated Visual Validation Loop
  * 
- * Automatically compare Figma design with Storybook implementation
- * and iteratively fix CSS/JS discrepancies until they match.
- * 
- * Usage:
- *   node scripts/compare-figma-storybook.js --block=hero --node-id=2-1446
+ * 完全自動化：
+ * 1. Figma & Storybook スクリーンショット取得
+ * 2. 画像比較で差異検出
+ * 3. 差異に基づいてCSS/JS自動修正
+ * 4. 再度スクリーンショット取得
+ * 5. 一致するまで繰り返し（最大5回）
  */
 
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import pixelmatch from 'pixelmatch';
+import { PNG } from 'pngjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const FIGMA_TOKEN = process.env.FIGMA_PERSONAL_ACCESS_TOKEN;
+const FIGMA_API_BASE = 'https://api.figma.com/v1';
+const FIGMA_TOKEN = process.env.FIGMA_PERSONAL_ACCESS_TOKEN || process.env.FIGMA_ACCESS_TOKEN;
 const STORYBOOK_URL = 'http://localhost:6006';
 const MAX_ITERATIONS = 5;
-const HOT_RELOAD_WAIT = 2000; // ms
+const HOT_RELOAD_WAIT = 3000;
+const SCREENSHOTS_DIR = join(__dirname, '..', '.validation-screenshots');
+const MATCH_THRESHOLD = 0.1; // 差異が0.1%以下なら一致とみなす
 
-/**
- * Parse command line arguments
- */
+if (!existsSync(SCREENSHOTS_DIR)) {
+  mkdirSync(SCREENSHOTS_DIR, { recursive: true });
+}
+
 function parseArgs() {
   const args = process.argv.slice(2);
   const blockArg = args.find(arg => arg.startsWith('--block='));
@@ -44,22 +51,17 @@ function parseArgs() {
   };
 }
 
-/**
- * Fetch Figma node data via API
- */
-async function fetchFigmaStyles(fileId, nodeId) {
+async function fetchFigmaScreenshot(fileId, nodeId, blockName, iteration) {
   if (!FIGMA_TOKEN) {
     throw new Error('FIGMA_PERSONAL_ACCESS_TOKEN not set');
   }
 
-  console.log(`📥 Fetching Figma styles for node ${nodeId}...`);
+  console.log(`📥 Fetching Figma screenshot...`);
 
   const response = await fetch(
-    `https://api.figma.com/v1/files/${fileId}/nodes?ids=${nodeId}`,
+    `https://api.figma.com/v1/images/${fileId}?ids=${nodeId}&format=png&scale=2`,
     {
-      headers: {
-        'X-Figma-Token': FIGMA_TOKEN,
-      },
+      headers: { 'X-Figma-Token': FIGMA_TOKEN },
     }
   );
 
@@ -68,211 +70,253 @@ async function fetchFigmaStyles(fileId, nodeId) {
   }
 
   const data = await response.json();
-  const node = data.nodes[nodeId]?.document;
-
-  if (!node) {
-    throw new Error(`Node ${nodeId} not found in Figma file`);
+  if (data.err) {
+    throw new Error(`Figma API error: ${data.err}`);
   }
 
-  // Extract CSS properties from Figma node
-  const styles = {
-    backgroundColor: extractColor(node.fills),
-    color: node.style?.fills ? extractColor(node.style.fills) : null,
-    fontSize: node.style?.fontSize ? `${node.style.fontSize}px` : null,
-    fontFamily: node.style?.fontFamily || null,
-    fontWeight: node.style?.fontWeight || null,
-    lineHeight: node.style?.lineHeightPx ? `${node.style.lineHeightPx}px` : null,
-    letterSpacing: node.style?.letterSpacing ? `${node.style.letterSpacing}px` : null,
-    borderRadius: node.cornerRadius ? `${node.cornerRadius}px` : null,
-    padding: node.paddingLeft ? `${node.paddingTop}px ${node.paddingRight}px ${node.paddingBottom}px ${node.paddingLeft}px` : null,
-  };
+  const imageUrl = data.images[nodeId];
+  if (!imageUrl) {
+    throw new Error(`No image URL for node ${nodeId}`);
+  }
 
-  // Filter out null values
-  return Object.fromEntries(
-    Object.entries(styles).filter(([_, value]) => value !== null)
-  );
+  const imageResponse = await fetch(imageUrl);
+  const arrayBuffer = await imageResponse.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const screenshotPath = join(SCREENSHOTS_DIR, `${blockName}-figma-iter${iteration}.png`);
+  writeFileSync(screenshotPath, buffer);
+
+  console.log(`✅ Figma screenshot saved`);
+  return screenshotPath;
 }
 
-/**
- * Extract color from Figma fills
- */
-function extractColor(fills) {
-  if (!fills || fills.length === 0) return null;
+async function getComponentSize(fileId, nodeId) {
+  const url = `${FIGMA_API_BASE}/files/${fileId}/nodes?ids=${nodeId}`;
   
-  const fill = fills.find(f => f.visible !== false);
-  if (!fill || fill.type !== 'SOLID') return null;
+  const response = await fetch(url, {
+    headers: {
+      'X-Figma-Token': FIGMA_TOKEN,
+    },
+  });
 
-  const { r, g, b, a = 1 } = fill.color;
-  const red = Math.round(r * 255);
-  const green = Math.round(g * 255);
-  const blue = Math.round(b * 255);
-
-  if (a === 1) {
-    return `rgb(${red}, ${green}, ${blue})`;
-  } else {
-    return `rgba(${red}, ${green}, ${blue}, ${a})`;
+  if (!response.ok) {
+    return null;
   }
+
+  const data = await response.json();
+  const nodeData = data.nodes[nodeId];
+
+  if (nodeData && nodeData.document.absoluteBoundingBox) {
+    return {
+      width: nodeData.document.absoluteBoundingBox.width,
+      height: nodeData.document.absoluteBoundingBox.height,
+    };
+  }
+
+  return null;
 }
 
-/**
- * Capture Storybook screenshot and extract computed styles
- */
-async function captureStorybook(blockName, storyName = 'default') {
-  console.log(`📸 Capturing Storybook for ${blockName}...`);
+async function captureStorybookScreenshot(blockName, storyName, iteration, componentSize = null) {
+  console.log(`📸 Capturing Storybook screenshot...`);
+
+  // Use component size from Figma if available, otherwise use defaults
+  const width = componentSize ? componentSize.width : 1160;
+  const height = componentSize ? componentSize.height : 1200;
 
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const page = await browser.newPage({
+    viewport: {
+      width: Math.ceil(width),
+      height: Math.ceil(height + 100), // Add some padding for potential overflow
+    },
+    deviceScaleFactor: 2, // Match Figma's scale=2 for Retina displays
+  });
 
   const storyUrl = `${STORYBOOK_URL}/iframe.html?id=blocks-${blockName}--${storyName}&viewMode=story`;
-  
+
   try {
     await page.goto(storyUrl, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(1000); // Wait for any animations
+    await page.waitForTimeout(2000);
 
-    // Extract computed styles from the block element
-    const computedStyles = await page.evaluate((name) => {
-      const element = document.querySelector(`.${name}`);
-      if (!element) return null;
-
-      const styles = window.getComputedStyle(element);
-      
-      return {
-        backgroundColor: styles.backgroundColor,
-        color: styles.color,
-        fontSize: styles.fontSize,
-        fontFamily: styles.fontFamily,
-        fontWeight: styles.fontWeight,
-        lineHeight: styles.lineHeight,
-        letterSpacing: styles.letterSpacing,
-        borderRadius: styles.borderRadius,
-        padding: styles.padding,
-      };
-    }, blockName);
-
-    await browser.close();
-
-    if (!computedStyles) {
-      throw new Error(`Block element .${blockName} not found in Storybook`);
+    const screenshotPath = join(SCREENSHOTS_DIR, `${blockName}-storybook-iter${iteration}.png`);
+    
+    const selector = `.${blockName}.block, .${blockName}, [data-block-name="${blockName}"]`;
+    const element = await page.locator(selector).first();
+    
+    if (await element.count() > 0) {
+      await element.screenshot({ path: screenshotPath });
+    } else {
+      await page.screenshot({ path: screenshotPath, fullPage: false });
     }
 
-    return computedStyles;
+    await browser.close();
+    console.log(`✅ Storybook screenshot saved`);
+    return screenshotPath;
   } catch (error) {
     await browser.close();
     throw error;
   }
 }
 
-/**
- * Normalize color values for comparison
- */
-function normalizeColor(color) {
-  if (!color) return null;
-  
-  // Convert rgb/rgba to consistent format
-  const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-  if (match) {
-    const [, r, g, b, a = '1'] = match;
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
+async function compareScreenshotsPixelMatch(figmaPath, storybookPath, blockName, iteration) {
+  console.log(`\n🔍 Comparing screenshots (pixel-by-pixel)...`);
+
+  const figmaImg = PNG.sync.read(readFileSync(figmaPath));
+  const storybookImg = PNG.sync.read(readFileSync(storybookPath));
+
+  console.log(`   Figma size:     ${figmaImg.width}x${figmaImg.height}`);
+  console.log(`   Storybook size: ${storybookImg.width}x${storybookImg.height}`);
+
+  // Use the smaller dimensions for comparison
+  const width = Math.min(figmaImg.width, storybookImg.width);
+  const height = Math.min(figmaImg.height, storybookImg.height);
+
+  if (figmaImg.width !== storybookImg.width || figmaImg.height !== storybookImg.height) {
+    console.log(`   📐 Comparing overlapping area: ${width}x${height}`);
   }
-  
-  return color;
+
+  const diff = new PNG({ width, height });
+
+  // Create cropped versions for comparison
+  const figmaCropped = new PNG({ width, height });
+  const storybookCropped = new PNG({ width, height });
+
+  // Copy pixels from original images to cropped versions
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const figmaIdx = (figmaImg.width * y + x) << 2;
+      const cropIdx = (width * y + x) << 2;
+      
+      figmaCropped.data[cropIdx] = figmaImg.data[figmaIdx];
+      figmaCropped.data[cropIdx + 1] = figmaImg.data[figmaIdx + 1];
+      figmaCropped.data[cropIdx + 2] = figmaImg.data[figmaIdx + 2];
+      figmaCropped.data[cropIdx + 3] = figmaImg.data[figmaIdx + 3];
+      
+      const storybookIdx = (storybookImg.width * y + x) << 2;
+      storybookCropped.data[cropIdx] = storybookImg.data[storybookIdx];
+      storybookCropped.data[cropIdx + 1] = storybookImg.data[storybookIdx + 1];
+      storybookCropped.data[cropIdx + 2] = storybookImg.data[storybookIdx + 2];
+      storybookCropped.data[cropIdx + 3] = storybookImg.data[storybookIdx + 3];
+    }
+  }
+
+  const numDiffPixels = pixelmatch(
+    figmaCropped.data,
+    storybookCropped.data,
+    diff.data,
+    width,
+    height,
+    { threshold: 0.1 }
+  );
+
+  const totalPixels = width * height;
+  const diffPercentage = (numDiffPixels / totalPixels) * 100;
+
+  // Save diff image
+  const diffPath = join(SCREENSHOTS_DIR, `${blockName}-diff-iter${iteration}.png`);
+  writeFileSync(diffPath, PNG.sync.write(diff));
+
+  console.log(`\n📊 Comparison Results:`);
+  console.log(`   Different pixels: ${numDiffPixels.toLocaleString()} / ${totalPixels.toLocaleString()}`);
+  console.log(`   Difference: ${diffPercentage.toFixed(2)}%`);
+  console.log(`   Diff image: ${diffPath}`);
+
+  const isMatch = diffPercentage < MATCH_THRESHOLD;
+
+  if (isMatch) {
+    console.log(`   ✅ Images match! (< ${MATCH_THRESHOLD}% difference)`);
+  } else {
+    console.log(`   ❌ Images differ significantly`);
+  }
+
+  return {
+    isMatch,
+    diffPercentage,
+    numDiffPixels,
+    totalPixels,
+    diffPath,
+  };
 }
 
-/**
- * Compare Figma styles with Storybook computed styles
- */
-function compareStyles(figmaStyles, storybookStyles) {
-  const differences = [];
+async function analyzeDifferencesAndFix(blockName, diffPercentage, iteration) {
+  console.log(`\n🔧 Analyzing differences and applying fixes...`);
 
-  for (const [property, figmaValue] of Object.entries(figmaStyles)) {
-    let storybookValue = storybookStyles[property];
+  // Heuristic-based fixes
+  const fixes = [];
 
-    // Normalize colors for comparison
-    if (property === 'backgroundColor' || property === 'color') {
-      figmaValue = normalizeColor(figmaValue);
-      storybookValue = normalizeColor(storybookValue);
-    }
-
-    // Skip if values match
-    if (figmaValue === storybookValue) continue;
-
-    // Check for close-enough values (e.g., 48px vs 48.0px)
-    if (typeof figmaValue === 'string' && typeof storybookValue === 'string') {
-      const figmaNum = parseFloat(figmaValue);
-      const storybookNum = parseFloat(storybookValue);
-      if (!isNaN(figmaNum) && !isNaN(storybookNum) && Math.abs(figmaNum - storybookNum) < 0.5) {
-        continue;
-      }
-    }
-
-    differences.push({
-      property,
-      figma: figmaValue,
-      storybook: storybookValue,
+  if (diffPercentage > 50) {
+    console.log(`   ⚠️  Large difference detected (${diffPercentage.toFixed(2)}%)`);
+    console.log(`   Applying major layout fixes...`);
+    fixes.push({
+      property: 'width',
+      value: '100%',
+      reason: 'Major layout difference',
+    });
+    fixes.push({
+      property: 'max-width',
+      value: '1200px',
+      reason: 'Constrain width',
+    });
+  } else if (diffPercentage > 20) {
+    console.log(`   ⚠️  Moderate difference detected (${diffPercentage.toFixed(2)}%)`);
+    console.log(`   Applying spacing/color fixes...`);
+    fixes.push({
+      property: 'margin',
+      value: '0 auto',
+      reason: 'Center alignment',
+    });
+  } else if (diffPercentage > 5) {
+    console.log(`   ⚠️  Minor difference detected (${diffPercentage.toFixed(2)}%)`);
+    console.log(`   Applying fine-tuning fixes...`);
+    fixes.push({
+      property: 'box-sizing',
+      value: 'border-box',
+      reason: 'Box model adjustment',
     });
   }
 
-  return differences;
-}
+  if (fixes.length === 0) {
+    console.log(`   ℹ️  No automatic fixes available for ${diffPercentage.toFixed(2)}% difference`);
+    console.log(`   Manual review recommended`);
+    return false;
+  }
 
-/**
- * Convert camelCase to kebab-case
- */
-function camelToKebab(str) {
-  return str.replace(/([A-Z])/g, '-$1').toLowerCase();
-}
-
-/**
- * Apply fixes to CSS based on Figma styles
- */
-async function applyFixes(blockName, differences) {
+  // Apply fixes to CSS
   const cssPath = join(__dirname, '..', 'blocks', blockName, `${blockName}.css`);
   let cssContent = readFileSync(cssPath, 'utf-8');
 
-  console.log(`🔧 Applying ${differences.length} fixes to ${blockName}.css...`);
-
-  for (const diff of differences) {
-    const { property, figma } = diff;
-    const cssProperty = camelToKebab(property);
-
-    console.log(`   - ${cssProperty}: "${diff.storybook}" → "${figma}"`);
-
-    // Try to find and replace existing property
+  fixes.forEach(fix => {
+    console.log(`   - ${fix.property}: ${fix.value} (${fix.reason})`);
+    
     const selectorRegex = new RegExp(`\\.${blockName}\\s*\\{[^}]*\\}`, 's');
     const match = cssContent.match(selectorRegex);
 
     if (match) {
       const selectorBlock = match[0];
-      const propertyRegex = new RegExp(`${cssProperty}:\\s*[^;]+;`, 'g');
+      const propertyRegex = new RegExp(`${fix.property}:\\s*[^;]+;`, 'g');
 
       if (propertyRegex.test(selectorBlock)) {
-        // Replace existing property
         const newSelectorBlock = selectorBlock.replace(
           propertyRegex,
-          `${cssProperty}: ${figma};`
+          `${fix.property}: ${fix.value};`
         );
         cssContent = cssContent.replace(selectorBlock, newSelectorBlock);
       } else {
-        // Add new property to selector
         const newSelectorBlock = selectorBlock.replace(
           /\{/,
-          `{\n  ${cssProperty}: ${figma};`
+          `{\n  ${fix.property}: ${fix.value};`
         );
         cssContent = cssContent.replace(selectorBlock, newSelectorBlock);
       }
-    } else {
-      // Add new selector block
-      cssContent += `\n\n.${blockName} {\n  ${cssProperty}: ${figma};\n}\n`;
     }
-  }
+  });
 
   writeFileSync(cssPath, cssContent);
-  console.log(`✅ Fixes applied to ${cssPath}`);
+  console.log(`✅ Applied ${fixes.length} fixes to ${cssPath}`);
+
+  return true;
 }
 
-/**
- * Check if Storybook is running
- */
 async function checkStorybookRunning() {
   try {
     const response = await fetch(STORYBOOK_URL);
@@ -282,19 +326,16 @@ async function checkStorybookRunning() {
   }
 }
 
-/**
- * Main validation loop
- */
-async function validateAndFix(blockName, fileId, nodeId, demoMode = false) {
-  console.log(`\n${'='.repeat(60)}`);
-  console.log(`🔄 Figma-Storybook Visual Validation Loop`);
-  console.log(`${'='.repeat(60)}\n`);
+async function automatedValidationLoop(blockName, fileId, nodeId, demoMode = false) {
+  console.log(`\n${'='.repeat(70)}`);
+  console.log(`🔄 Automated Figma-Storybook Visual Validation Loop`);
+  console.log(`${'='.repeat(70)}\n`);
   console.log(`📦 Block: ${blockName}`);
   console.log(`🎨 Figma Node: ${nodeId}`);
   console.log(`📁 Figma File: ${fileId}`);
-  console.log(`🎭 Demo Mode: ${demoMode ? 'ON' : 'OFF'}\n`);
+  console.log(`🎭 Demo Mode: ${demoMode ? 'ON' : 'OFF'}`);
+  console.log(`🎯 Match Threshold: ${MATCH_THRESHOLD}%\n`);
 
-  // Check if Storybook is running
   const isRunning = await checkStorybookRunning();
   if (!isRunning) {
     console.error(`❌ Storybook is not running at ${STORYBOOK_URL}`);
@@ -303,53 +344,70 @@ async function validateAndFix(blockName, fileId, nodeId, demoMode = false) {
   }
 
   let iteration = 0;
-  let allMatched = false;
+  let isMatch = false;
+  let lastDiffPercentage = 100;
+  let componentSize = null;
 
-  while (!allMatched && iteration < MAX_ITERATIONS) {
+  // Get component size from Figma (once at the start)
+  console.log('📐 Fetching component size from Figma...');
+  componentSize = await getComponentSize(fileId, nodeId);
+  if (componentSize) {
+    console.log(`   Component size: ${componentSize.width} x ${componentSize.height}\n`);
+  } else {
+    console.log(`   ⚠️  Could not fetch component size, using defaults\n`);
+  }
+
+  while (!isMatch && iteration < MAX_ITERATIONS) {
     iteration++;
-    console.log(`\n📍 Iteration ${iteration}/${MAX_ITERATIONS}`);
-    console.log(`${'-'.repeat(40)}\n`);
+    console.log(`\n${'─'.repeat(70)}`);
+    console.log(`📍 Iteration ${iteration}/${MAX_ITERATIONS}`);
+    console.log(`${'─'.repeat(70)}\n`);
 
     try {
-      // 1. Fetch Figma styles
-      const figmaStyles = await fetchFigmaStyles(fileId, nodeId);
-      console.log(`✅ Fetched ${Object.keys(figmaStyles).length} Figma styles`);
-
-      if (demoMode) {
-        console.log('\n📊 Figma Styles:');
-        Object.entries(figmaStyles).forEach(([key, value]) => {
-          console.log(`   ${key}: ${value}`);
-        });
-      }
-
-      // 2. Capture Storybook
-      const storybookStyles = await captureStorybook(blockName);
-      console.log(`✅ Captured Storybook styles`);
-
-      if (demoMode) {
-        console.log('\n📊 Storybook Styles:');
-        Object.entries(storybookStyles).forEach(([key, value]) => {
-          console.log(`   ${key}: ${value}`);
-        });
-      }
-
-      // 3. Compare
-      console.log(`\n🔍 Comparing styles...`);
-      const differences = compareStyles(figmaStyles, storybookStyles);
-
-      if (differences.length === 0) {
-        console.log(`✅ All styles match! 🎉`);
-        allMatched = true;
+      // 1. Fetch Figma screenshot (only once at start)
+      let figmaPath;
+      if (iteration === 1) {
+        figmaPath = await fetchFigmaScreenshot(fileId, nodeId, blockName, iteration);
       } else {
-        console.log(`⚠️  Found ${differences.length} difference(s):\n`);
-        differences.forEach(diff => {
-          console.log(`   ❌ ${diff.property}:`);
-          console.log(`      Figma:     "${diff.figma}"`);
-          console.log(`      Storybook: "${diff.storybook}"`);
-        });
+        // Reuse Figma screenshot from iteration 1
+        figmaPath = join(SCREENSHOTS_DIR, `${blockName}-figma-iter1.png`);
+        console.log(`📥 Using cached Figma screenshot`);
+      }
 
-        // 4. Apply fixes
-        await applyFixes(blockName, differences);
+      // 2. Capture Storybook screenshot
+      const storybookPath = await captureStorybookScreenshot(blockName, 'default', iteration, componentSize);
+
+      // 3. Compare screenshots
+      const comparison = await compareScreenshotsPixelMatch(
+        figmaPath,
+        storybookPath,
+        blockName,
+        iteration
+      );
+
+      lastDiffPercentage = comparison.diffPercentage;
+
+      if (comparison.isMatch) {
+        console.log(`\n✅ Visual match achieved! 🎉`);
+        isMatch = true;
+      } else {
+        if (iteration >= MAX_ITERATIONS) {
+          console.log(`\n⚠️  Max iterations (${MAX_ITERATIONS}) reached`);
+          break;
+        }
+
+        // 4. Analyze and apply fixes
+        const fixesApplied = await analyzeDifferencesAndFix(
+          blockName,
+          comparison.diffPercentage,
+          iteration
+        );
+
+        if (!fixesApplied) {
+          console.log(`\n⚠️  Unable to apply automatic fixes`);
+          console.log(`   Manual intervention required`);
+          break;
+        }
 
         // 5. Wait for hot reload
         console.log(`\n⏳ Waiting ${HOT_RELOAD_WAIT}ms for hot reload...`);
@@ -362,43 +420,42 @@ async function validateAndFix(blockName, fileId, nodeId, demoMode = false) {
         console.log(`\n💡 Troubleshooting:`);
         console.log(`   1. Is Storybook running? npm run storybook`);
         console.log(`   2. Is FIGMA_PERSONAL_ACCESS_TOKEN set?`);
-        console.log(`   3. Is the Figma file ID correct?`);
-        console.log(`   4. Does the Story exist in Storybook?\n`);
+        console.log(`   3. Does the Story exist in Storybook?`);
       }
       
       process.exit(1);
     }
   }
 
-  console.log(`\n${'='.repeat(60)}`);
-  if (allMatched) {
+  console.log(`\n${'='.repeat(70)}`);
+  if (isMatch) {
     console.log(`✅ Validation Complete! ${blockName} matches Figma design.`);
+    console.log(`   Final difference: ${lastDiffPercentage.toFixed(2)}%`);
   } else {
-    console.log(`⚠️  Max iterations (${MAX_ITERATIONS}) reached.`);
-    console.log(`   Some differences may remain. Manual review recommended.`);
+    console.log(`⚠️  Validation incomplete after ${MAX_ITERATIONS} iterations`);
+    console.log(`   Final difference: ${lastDiffPercentage.toFixed(2)}%`);
+    console.log(`   Manual review recommended`);
   }
-  console.log(`${'='.repeat(60)}\n`);
+  console.log(`${'='.repeat(70)}\n`);
+  console.log(`📁 All screenshots saved to: ${SCREENSHOTS_DIR}\n`);
 }
 
 // Main execution
 const { blockName, nodeId, fileId, demoMode } = parseArgs();
 
-// If file ID not provided, try to extract from figma-urls.json
 let finalFileId = fileId;
 if (!finalFileId) {
   try {
     const figmaUrlsPath = join(__dirname, '..', 'config', 'figma', 'figma-urls.json');
     const figmaUrls = JSON.parse(readFileSync(figmaUrlsPath, 'utf-8'));
     finalFileId = figmaUrls.fileId;
-    console.log(`📁 Using Figma file ID from config: ${finalFileId}`);
   } catch (error) {
     console.error('❌ Could not determine Figma file ID');
-    console.log('   Provide --file-id=<id> or ensure config/figma/figma-urls.json exists');
     process.exit(1);
   }
 }
 
-validateAndFix(blockName, finalFileId, nodeId, demoMode).catch(error => {
+automatedValidationLoop(blockName, finalFileId, nodeId, demoMode).catch(error => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });

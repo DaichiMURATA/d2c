@@ -10,6 +10,7 @@ helix-importer-ui
 
 # Visual comparison temporary files
 .visual-compare/
+.validation-screenshots/
 
 # Figma raw data
 figma-variables-raw.json
@@ -20,8 +21,6 @@ figma-variables-summary.json
 .mcp-setup/.figma-token
 
 # Temporary documentation
-*-COMPLETE.md
-*-FIX*.md
 CLEANUP-PLAN.md
 
 # Storybook build output

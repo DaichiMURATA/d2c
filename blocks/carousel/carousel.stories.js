@@ -1,13 +1,14 @@
 /**
  * @file carousel.stories.js
  * @description Storybook stories for the Carousel block
- * Minimal variant based on Figma structure
+ * 
+ * Figma: https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework?node-id=9392-122
  */
 
 import '../../styles/styles.css';
 import './carousel.css';
 import decorate from './carousel.js';
-import carouselImageUrl from './carousel-image.png';
+import sampleImage from './assets/image.png';
 
 export default {
   title: 'Blocks/Carousel',
@@ -18,135 +19,188 @@ export default {
         component: `
 ## Carousel Block
 
-Slideshow component for cycling through content items.
+画像スライダーブロック。自動再生、ナビゲーションボタン、スライドインジケーター付き。
 
 **Features:**
-- ✅ Previous/Next navigation buttons
-- ✅ Indicator dots for direct navigation
-- ✅ Keyboard navigation (Arrow keys)
-- ✅ WCAG AA accessibility
-- ✅ Touch/swipe support (future enhancement)
+- ✅ 自動スライド（5秒間隔）
+- ✅ ナビゲーションボタン
+- ✅ スライドインジケーター
+- ✅ Play/Pauseボタン
+- ✅ キーボードナビゲーション
+- ✅ PC/SP画像切替
+- ✅ 画像リンク対応
         `,
       },
     },
     layout: 'fullscreen',
     chromatic: {
       viewports: [375, 1200],
+      delay: 500,
     },
   },
 };
 
+// Sample images (using Figma-downloaded assets)
+const sampleImages = {
+  slide1: {
+    pcImage: sampleImage,
+    spImage: sampleImage,
+    alt: 'Carousel Slide',
+  },
+  slide2: {
+    pcImage: 'https://via.placeholder.com/1200x400/1d3ecf/ffffff?text=Slide+2+PC',
+    spImage: 'https://via.placeholder.com/600x400/1d3ecf/ffffff?text=Slide+2+SP',
+    alt: 'Slide 2',
+  },
+  slide3: {
+    pcImage: 'https://via.placeholder.com/1200x400/505050/ffffff?text=Slide+3+PC',
+    spImage: 'https://via.placeholder.com/600x400/505050/ffffff?text=Slide+3+SP',
+    alt: 'Slide 3',
+  },
+};
+
 /**
- * Creates EDS-style carousel block DOM structure
+ * Helper: Create carousel HTML structure
  */
-const createCarouselBlock = ({
-  slideCount = 3, hasContent = true, contentPosition = 'center', contentSize = 'full',
-}) => {
+const createCarouselBlock = (slides) => {
   const block = document.createElement('div');
-  block.className = 'carousel';
-  if (contentPosition !== 'center') block.setAttribute('data-content-position', contentPosition);
-  if (contentSize !== 'full') block.setAttribute('data-content-size', contentSize);
+  block.className = 'carousel block';
+  block.setAttribute('data-block-name', 'carousel');
+  block.setAttribute('data-block-status', 'initialized');
 
-  for (let i = 0; i < slideCount; i++) {
-    const slide = document.createElement('div');
-
-    const img = document.createElement('img');
-    img.src = carouselImageUrl;
-    img.alt = `Slide ${i + 1}`;
-    img.loading = 'eager';
-    slide.appendChild(img);
-
-    if (hasContent) {
-      const heading = document.createElement('h3');
-      heading.textContent = `Slide ${i + 1} Title`;
-      slide.appendChild(heading);
-
-      const para = document.createElement('p');
-      para.textContent = 'This is a description of the slide content.';
-      slide.appendChild(para);
+  slides.forEach(slide => {
+    const row = document.createElement('div');
+    
+    // PC image column
+    const pcCol = document.createElement('div');
+    const pcPicture = document.createElement('picture');
+    pcPicture.setAttribute('data-viewport', 'desktop');
+    const pcImg = document.createElement('img');
+    pcImg.src = slide.pcImage;
+    pcImg.alt = slide.alt || '';
+    pcPicture.appendChild(pcImg);
+    pcCol.appendChild(pcPicture);
+    
+    // Add link if provided
+    if (slide.link) {
+      const link = document.createElement('a');
+      link.href = slide.link;
+      link.title = slide.linkTitle || '';
+      pcCol.appendChild(link);
     }
+    
+    // SP image column
+    const spCol = document.createElement('div');
+    const spPicture = document.createElement('picture');
+    spPicture.setAttribute('data-viewport', 'mobile');
+    const spImg = document.createElement('img');
+    spImg.src = slide.spImage;
+    spImg.alt = slide.alt || '';
+    spPicture.appendChild(spImg);
+    spCol.appendChild(spPicture);
+    
+    // Add link if provided
+    if (slide.link) {
+      const link = document.createElement('a');
+      link.href = slide.link;
+      link.title = slide.linkTitle || '';
+      spCol.appendChild(link);
+    }
+    
+    row.appendChild(pcCol);
+    row.appendChild(spCol);
+    block.appendChild(row);
+  });
 
-    block.appendChild(slide);
-  }
-
+  // Apply decorate function
+  decorate(block);
+  
   return block;
 };
 
 /**
- * Template function
+ * Story: Default (3 slides)
  */
-const Template = (args) => {
-  const main = document.createElement('main');
-  const section = document.createElement('div');
-  section.className = 'section';
-
-  const wrapper = document.createElement('div');
-  const block = createCarouselBlock(args);
-  wrapper.appendChild(block);
-  section.appendChild(wrapper);
-  main.appendChild(section);
-
-  decorate(block);
-
-  return main;
-};
-
-// Figma Variant 1: Single slide, full content, center
-export const SingleSlideFullContent = {
-  render: () => Template({
-    slideCount: 1, hasContent: true, contentPosition: 'center', contentSize: 'full',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
+export const Default = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+    ];
+    return createCarouselBlock(slides);
   },
 };
 
-// Figma Variant 2: Multiple slides, no content
-export const MultipleSlides = {
-  render: () => Template({
-    slideCount: 3, hasContent: false, contentPosition: 'none', contentSize: 'none',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
+/**
+ * Story: Single Slide
+ */
+export const SingleSlide = {
+  render: () => {
+    const slides = [sampleImages.slide1];
+    return createCarouselBlock(slides);
   },
 };
 
-// Figma Variant 3: Multiple slides, small content, center
-export const MultipleSlidesSmallCenter = {
-  render: () => Template({
-    slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'small',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
+/**
+ * Story: Two Slides
+ */
+export const TwoSlides = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+    ];
+    return createCarouselBlock(slides);
   },
 };
 
-// Figma Variant 4: Multiple slides, small content, right
-export const MultipleSlidesSmallRight = {
-  render: () => Template({
-    slideCount: 3, hasContent: true, contentPosition: 'right', contentSize: 'small',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
+/**
+ * Story: With Image Links
+ */
+export const WithImageLinks = {
+  render: () => {
+    const slides = [
+      {
+        ...sampleImages.slide1,
+        link: 'https://example.com/slide1',
+        linkTitle: 'Learn more about Slide 1',
+      },
+      {
+        ...sampleImages.slide2,
+        link: 'https://example.com/slide2',
+        linkTitle: 'Learn more about Slide 2',
+      },
+      {
+        ...sampleImages.slide3,
+        link: 'https://example.com/slide3',
+        linkTitle: 'Learn more about Slide 3',
+      },
+    ];
+    return createCarouselBlock(slides);
   },
 };
 
-// Figma Variant 5: Multiple slides, small content, left
-export const MultipleSlidesSmallLeft = {
-  render: () => Template({
-    slideCount: 3, hasContent: true, contentPosition: 'left', contentSize: 'small',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
-  },
-};
-
-// Figma Variant 6: Multiple slides, full content, center
-export const MultipleSlidesFullCenter = {
-  render: () => Template({
-    slideCount: 3, hasContent: true, contentPosition: 'center', contentSize: 'full',
-  }),
-  parameters: {
-    chromatic: { delay: 300 },
+/**
+ * Story: Many Slides (5)
+ */
+export const ManySlides = {
+  render: () => {
+    const slides = [
+      sampleImages.slide1,
+      sampleImages.slide2,
+      sampleImages.slide3,
+      {
+        pcImage: 'https://via.placeholder.com/1200x400/f8f8f8/505050?text=Slide+4+PC',
+        spImage: 'https://via.placeholder.com/600x400/f8f8f8/505050?text=Slide+4+SP',
+        alt: 'Slide 4',
+      },
+      {
+        pcImage: 'https://via.placeholder.com/1200x400/ff6b6b/ffffff?text=Slide+5+PC',
+        spImage: 'https://via.placeholder.com/600x400/ff6b6b/ffffff?text=Slide+5+SP',
+        alt: 'Slide 5',
+      },
+    ];
+    return createCarouselBlock(slides);
   },
 };

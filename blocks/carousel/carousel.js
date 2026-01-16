@@ -1,157 +1,349 @@
 /**
- * @file carousel.js
- * @description Carousel block - Slideshow of content items
- * @version 1.0.0
- *
- * Based on Adobe EDS Block Collection Carousel pattern
- * @see https://github.com/adobe/aem-block-collection/tree/main/blocks/carousel
+ * Carousel Block
+ * 
+ * 画像スライダーを実装。自動再生、ナビゲーションボタン、スライドインジケーター付き。
+ * 
+ * Content Model:
+ * - 各行がスライド
+ * - 各スライドには2列（PCとSP画像）
+ * - 画像の下にリンクがある場合、画像全体にリンクを適用
  */
 
 let carouselId = 0;
 
-function updateButtonStates(carousel) {
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const prevButton = carousel.querySelector('.carousel-button-prev');
-  const nextButton = carousel.querySelector('.carousel-button-next');
-  const indicators = carousel.querySelectorAll('.carousel-indicator');
+/**
+ * スライド要素を作成
+ */
+function createSlide(row, slideIndex, carouselIdNum) {
+  const slide = document.createElement('li');
+  slide.classList.add('carousel-slide');
+  slide.dataset.slideIndex = slideIndex;
+  slide.setAttribute('id', `carousel-${carouselIdNum}-slide-${slideIndex}`);
+  slide.setAttribute('role', 'group');
+  slide.setAttribute('aria-roledescription', 'slide');
+  slide.setAttribute('aria-label', `${slideIndex + 1}`);
 
-  let currentIndex = 0;
-  slides.forEach((slide, index) => {
-    if (slide.classList.contains('active')) {
-      currentIndex = index;
+  const columns = row.querySelectorAll(':scope > div');
+  
+  // PC画像とSP画像を処理
+  const slideImage = document.createElement('div');
+  slideImage.classList.add('carousel-slide-image');
+
+  columns.forEach((column, colIndex) => {
+    const picture = column.querySelector('picture');
+    const link = column.querySelector('a');
+
+    if (picture) {
+      const img = picture.querySelector('img');
+      
+      // データ属性設定（PC: desktop, SP: mobile）
+      const viewportType = colIndex === 0 ? 'desktop' : 'mobile';
+      picture.setAttribute('data-viewport', viewportType);
+      
+      if (img) {
+        img.setAttribute('loading', slideIndex === 0 ? 'eager' : 'lazy');
+      }
+
+      // リンクがある場合は画像全体をリンクでラップ
+      if (link && !link.closest('picture')) {
+        const imageLink = document.createElement('a');
+        imageLink.href = link.href;
+        imageLink.title = link.title || '';
+        imageLink.setAttribute('aria-label', `Slide ${slideIndex + 1} link`);
+        imageLink.append(picture);
+        slideImage.append(imageLink);
+        link.remove(); // 元のリンクを削除
+      } else {
+        slideImage.append(picture);
+      }
     }
   });
 
-  // Update button states
-  prevButton.disabled = currentIndex === 0;
-  nextButton.disabled = currentIndex === slides.length - 1;
+  slide.append(slideImage);
+  return slide;
+}
 
-  // Update indicators
-  indicators.forEach((indicator, index) => {
-    indicator.classList.toggle('active', index === currentIndex);
+/**
+ * スライドインジケーター更新
+ */
+function updateActiveSlide(activeSlide, block) {
+  const slides = block.querySelectorAll('.carousel-slide');
+  const indicators = block.querySelectorAll('.carousel-slide-indicator');
+
+  slides.forEach((slide, index) => {
+    if (slide === activeSlide) {
+      slide.classList.add('active');
+      slide.setAttribute('aria-hidden', 'false');
+      slide.setAttribute('tabindex', '0');
+      
+      if (indicators[index]) {
+        indicators[index].classList.add('active');
+        indicators[index].querySelector('button').setAttribute('aria-current', 'true');
+      }
+    } else {
+      slide.classList.remove('active');
+      slide.setAttribute('aria-hidden', 'true');
+      slide.setAttribute('tabindex', '-1');
+      
+      if (indicators[index]) {
+        indicators[index].classList.remove('active');
+        indicators[index].querySelector('button').removeAttribute('aria-current');
+      }
+    }
   });
 }
 
-function showSlide(carousel, index) {
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const track = carousel.querySelector('.carousel-track');
-
-  slides.forEach((slide, i) => {
-    slide.classList.toggle('active', i === index);
-  });
-
-  // Slide animation
-  track.style.transform = `translateX(-${index * 100}%)`;
-
-  updateButtonStates(carousel);
-}
-
-function nextSlide(carousel) {
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const currentIndex = [...slides].findIndex((slide) => slide.classList.contains('active'));
-
-  if (currentIndex < slides.length - 1) {
-    showSlide(carousel, currentIndex + 1);
-  }
-}
-
-function prevSlide(carousel) {
-  const slides = carousel.querySelectorAll('.carousel-slide');
-  const currentIndex = [...slides].findIndex((slide) => slide.classList.contains('active'));
-
-  if (currentIndex > 0) {
-    showSlide(carousel, currentIndex - 1);
+/**
+ * 次のスライドへ移動
+ */
+function scrollToSlide(block, slideIndex) {
+  const slides = block.querySelectorAll('.carousel-slide');
+  const targetSlide = slides[slideIndex];
+  
+  if (targetSlide) {
+    const slidesWrapper = block.querySelector('.carousel-slides');
+    slidesWrapper.scrollTo({
+      left: targetSlide.offsetLeft,
+      behavior: 'smooth',
+    });
+    updateActiveSlide(targetSlide, block);
   }
 }
 
 /**
- * Decorates the carousel block
- * @param {Element} block The carousel block element
+ * 自動スライド機能
  */
-export default function decorate(block) {
-  carouselId += 1;
+function startAutoSlide(block, interval = 5000) {
+  let autoSlideTimer;
 
-  const rows = [...block.children];
+  const nextSlide = () => {
+    const slides = block.querySelectorAll('.carousel-slide');
+    const currentSlide = block.querySelector('.carousel-slide.active');
+    const currentIndex = Array.from(slides).indexOf(currentSlide);
+    const nextIndex = (currentIndex + 1) % slides.length;
+    scrollToSlide(block, nextIndex);
+  };
 
-  // Create carousel structure
-  const carouselContainer = document.createElement('div');
-  carouselContainer.className = 'carousel-container';
+  const start = () => {
+    stop();
+    autoSlideTimer = setInterval(nextSlide, interval);
+    block.dataset.autoSlide = 'playing';
+    updatePlayPauseButton(block, 'playing');
+  };
 
-  const track = document.createElement('div');
-  track.className = 'carousel-track';
+  const stop = () => {
+    if (autoSlideTimer) {
+      clearInterval(autoSlideTimer);
+      autoSlideTimer = null;
+    }
+    block.dataset.autoSlide = 'paused';
+    updatePlayPauseButton(block, 'paused');
+  };
 
-  // Convert rows to slides
-  rows.forEach((row, index) => {
-    const slide = document.createElement('div');
-    slide.className = 'carousel-slide';
-    slide.setAttribute('role', 'group');
-    slide.setAttribute('aria-roledescription', 'slide');
-    slide.setAttribute('aria-label', `Slide ${index + 1}`);
+  // マウスホバー時は一時停止
+  block.addEventListener('mouseenter', stop);
+  block.addEventListener('mouseleave', start);
 
-    if (index === 0) slide.classList.add('active');
+  // Play/Pauseボタン
+  const playPauseButton = block.querySelector('.carousel-play-pause');
+  if (playPauseButton) {
+    playPauseButton.addEventListener('click', () => {
+      if (block.dataset.autoSlide === 'playing') {
+        stop();
+      } else {
+        start();
+      }
+    });
+  }
 
-    // Move row content to slide
-    slide.innerHTML = row.innerHTML;
-    track.appendChild(slide);
+  // 初期状態で開始
+  start();
+
+  return { start, stop };
+}
+
+/**
+ * Play/Pauseボタンの表示更新
+ */
+function updatePlayPauseButton(block, state) {
+  const button = block.querySelector('.carousel-play-pause');
+  if (!button) return;
+
+  if (state === 'playing') {
+    button.classList.remove('paused');
+    button.classList.add('playing');
+    button.setAttribute('aria-label', 'Pause auto-slide');
+    button.textContent = '⏸';
+  } else {
+    button.classList.remove('playing');
+    button.classList.add('paused');
+    button.setAttribute('aria-label', 'Play auto-slide');
+    button.textContent = '▶';
+  }
+}
+
+/**
+ * イベントバインディング
+ */
+function bindEvents(block) {
+  const slidesWrapper = block.querySelector('.carousel-slides');
+  const indicators = block.querySelectorAll('.carousel-slide-indicator');
+  const prevButton = block.querySelector('.slide-prev');
+  const nextButton = block.querySelector('.slide-next');
+
+  // インジケータークリック
+  indicators.forEach((indicator) => {
+    const button = indicator.querySelector('button');
+    button.addEventListener('click', () => {
+      const targetIndex = parseInt(indicator.dataset.targetSlide, 10);
+      scrollToSlide(block, targetIndex);
+    });
   });
 
-  // Clear block and add track
-  block.innerHTML = '';
-  carouselContainer.appendChild(track);
-  block.appendChild(carouselContainer);
+  // ナビゲーションボタン
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      const slides = block.querySelectorAll('.carousel-slide');
+      const currentSlide = block.querySelector('.carousel-slide.active');
+      const currentIndex = Array.from(slides).indexOf(currentSlide);
+      const prevIndex = currentIndex === 0 ? slides.length - 1 : currentIndex - 1;
+      scrollToSlide(block, prevIndex);
+    });
+  }
 
-  // Navigation buttons
-  const prevButton = document.createElement('button');
-  prevButton.className = 'carousel-button carousel-button-prev';
-  prevButton.setAttribute('aria-label', 'Previous slide');
-  prevButton.innerHTML = '‹';
-  prevButton.addEventListener('click', () => prevSlide(block));
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      const slides = block.querySelectorAll('.carousel-slide');
+      const currentSlide = block.querySelector('.carousel-slide.active');
+      const currentIndex = Array.from(slides).indexOf(currentSlide);
+      const nextIndex = (currentIndex + 1) % slides.length;
+      scrollToSlide(block, nextIndex);
+    });
+  }
 
-  const nextButton = document.createElement('button');
-  nextButton.className = 'carousel-button carousel-button-next';
-  nextButton.setAttribute('aria-label', 'Next slide');
-  nextButton.innerHTML = '›';
-  nextButton.addEventListener('click', () => nextSlide(block));
-
-  carouselContainer.appendChild(prevButton);
-  carouselContainer.appendChild(nextButton);
-
-  // Indicators
-  const indicators = document.createElement('div');
-  indicators.className = 'carousel-indicators';
-
-  rows.forEach((_, index) => {
-    const indicator = document.createElement('button');
-    indicator.className = 'carousel-indicator';
-    indicator.setAttribute('aria-label', `Go to slide ${index + 1}`);
-    if (index === 0) indicator.classList.add('active');
-
-    indicator.addEventListener('click', () => showSlide(block, index));
-    indicators.appendChild(indicator);
-  });
-
-  block.appendChild(indicators);
-
-  // Keyboard navigation
+  // キーボードナビゲーション
   block.addEventListener('keydown', (e) => {
+    const slides = block.querySelectorAll('.carousel-slide');
+    const currentSlide = block.querySelector('.carousel-slide.active');
+    const currentIndex = Array.from(slides).indexOf(currentSlide);
+
     if (e.key === 'ArrowLeft') {
-      prevSlide(block);
+      e.preventDefault();
+      const prevIndex = currentIndex === 0 ? slides.length - 1 : currentIndex - 1;
+      scrollToSlide(block, prevIndex);
     } else if (e.key === 'ArrowRight') {
-      nextSlide(block);
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % slides.length;
+      scrollToSlide(block, nextIndex);
     }
   });
 
-  // Update button states
-  updateButtonStates(block);
-
-  // Public API
-  block._eds = {
-    showSlide: (index) => showSlide(block, index),
-    next: () => nextSlide(block),
-    prev: () => prevSlide(block),
-    getCurrentIndex: () => {
+  // スクロールイベントでアクティブスライド更新
+  let scrollTimeout;
+  slidesWrapper.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const scrollLeft = slidesWrapper.scrollLeft;
+      const slideWidth = slidesWrapper.offsetWidth;
+      const activeIndex = Math.round(scrollLeft / slideWidth);
       const slides = block.querySelectorAll('.carousel-slide');
-      return [...slides].findIndex((slide) => slide.classList.contains('active'));
-    },
-  };
+      if (slides[activeIndex]) {
+        updateActiveSlide(slides[activeIndex], block);
+      }
+    }, 100);
+  });
+}
+
+/**
+ * メインのdecorate関数
+ */
+export default async function decorate(block) {
+  carouselId += 1;
+  block.setAttribute('id', `carousel-${carouselId}`);
+  block.setAttribute('role', 'region');
+  block.setAttribute('aria-roledescription', 'Carousel');
+  block.setAttribute('aria-label', `Carousel ${carouselId}`);
+
+  const rows = Array.from(block.children);
+  const isSingleSlide = rows.length < 2;
+
+  // 複数スライドの場合のみキーボードフォーカス可能
+  if (!isSingleSlide) {
+    block.setAttribute('tabindex', '0');
+  }
+
+  // スライドコンテナ作成
+  const container = document.createElement('div');
+  container.classList.add('carousel-slides-container');
+
+  const slidesWrapper = document.createElement('ul');
+  slidesWrapper.classList.add('carousel-slides');
+  slidesWrapper.setAttribute('role', 'list');
+
+  // スライド作成
+  rows.forEach((row, idx) => {
+    const slide = createSlide(row, idx, carouselId);
+    slidesWrapper.append(slide);
+    row.remove();
+  });
+
+  container.append(slidesWrapper);
+  block.prepend(container);
+
+  // 複数スライドの場合、ナビゲーションUIを追加
+  if (!isSingleSlide) {
+    // スライドインジケーター
+    const slideIndicatorsNav = document.createElement('nav');
+    slideIndicatorsNav.classList.add('carousel-indicators-nav');
+    slideIndicatorsNav.setAttribute('aria-label', 'Carousel Slide Controls');
+
+    const slideIndicators = document.createElement('ol');
+    slideIndicators.classList.add('carousel-slide-indicators');
+
+    rows.forEach((row, idx) => {
+      const indicator = document.createElement('li');
+      indicator.classList.add('carousel-slide-indicator');
+      indicator.dataset.targetSlide = idx;
+      indicator.innerHTML = `<button type="button" aria-label="Show Slide ${idx + 1} of ${rows.length}"></button>`;
+      slideIndicators.append(indicator);
+    });
+
+    slideIndicatorsNav.append(slideIndicators);
+
+    // Play/Pauseボタン
+    const playPauseButton = document.createElement('button');
+    playPauseButton.type = 'button';
+    playPauseButton.classList.add('carousel-play-pause');
+    playPauseButton.setAttribute('aria-label', 'Pause auto-slide');
+    slideIndicatorsNav.append(playPauseButton);
+
+    block.append(slideIndicatorsNav);
+
+    // ナビゲーションボタン
+    const slideNavButtons = document.createElement('div');
+    slideNavButtons.classList.add('carousel-navigation-buttons');
+    slideNavButtons.innerHTML = `
+      <button type="button" class="slide-prev" aria-label="Previous Slide">‹</button>
+      <button type="button" class="slide-next" aria-label="Next Slide">›</button>
+    `;
+    container.append(slideNavButtons);
+
+    // イベントバインディング
+    bindEvents(block);
+
+    // 最初のスライドをアクティブに
+    const firstSlide = block.querySelector('.carousel-slide');
+    if (firstSlide) {
+      updateActiveSlide(firstSlide, block);
+    }
+
+    // 自動スライド開始
+    startAutoSlide(block);
+  } else {
+    // シングルスライドの場合は最初のスライドをアクティブに
+    const firstSlide = block.querySelector('.carousel-slide');
+    if (firstSlide) {
+      firstSlide.classList.add('active');
+    }
+  }
 }

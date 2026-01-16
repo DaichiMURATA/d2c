@@ -1,12 +1,27 @@
 {
+  "fileId": "MJTwyRbE5EVdlci3UIwsut",
   "project": "d2c",
   "description": "Figma URLs for EDS component generation",
   "mainFile": {
-    "url": "https://www.figma.com/file/REPLACE_WITH_YOUR_FILE_ID/REPLACE_WITH_YOUR_FILE_NAME",
+    "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework",
     "description": "Main design file for EDS components",
-    "lastUpdated": "2026-01-09"
+    "lastUpdated": "2026-01-16"
   },
   "components": {
+    "carousel": {
+      "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework?node-id=9392-122",
+      "nodeId": "9392-122",
+      "description": "Carousel block with auto-slide and navigation",
+      "variants": [
+        "Default",
+        "SingleSlide",
+        "TwoSlides",
+        "WithImageLinks",
+        "ManySlides"
+      ],
+      "status": "generated",
+      "lastUpdated": "2026-01-16"
+    },
     "hero": {
       "url": "https://www.figma.com/file/FILE_ID/FILE_NAME?node-id=NODE_ID",
       "description": "Hero block with multiple layout variants",
@@ -35,7 +50,7 @@
     }
   },
   "designTokens": {
-    "url": "https://www.figma.com/file/FILE_ID/FILE_NAME",
+    "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework",
     "description": "All design tokens (colors, typography, spacing)",
     "categories": [
       "Colors - Primitives",
@@ -47,13 +62,12 @@
       "Shadows",
       "Transitions"
     ],
-    "lastSynced": "2026-01-09"
+    "lastSynced": "2026-01-16"
   },
   "notes": [
-    "Replace FILE_ID and FILE_NAME with actual Figma file information",
+    "fileId is used by validation scripts to fetch Figma data",
     "NODE_ID is optional - include only when linking to specific component",
     "Update 'status' field after generating each component",
     "Keep 'lastUpdated' field current for tracking changes"
   ]
 }
-
