@@ -326,6 +326,303 @@ async function checkStorybookRunning() {
   }
 }
 
+async function generateHTMLReport(blockName, fileId, nodeId, result) {
+  const reportPath = join(SCREENSHOTS_DIR, `${blockName}-report.html`);
+  
+  const figmaUrl = `https://www.figma.com/design/${fileId}?node-id=${nodeId.replace(':', '-')}`;
+  const storybookUrl = `${STORYBOOK_URL}/?path=/story/blocks-${blockName}--default`;
+  
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Figma-Storybook Validation Report: ${blockName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      background: #f5f5f5; 
+      padding: 20px; 
+      color: #333;
+    }
+    .header { 
+      background: white; 
+      padding: 30px; 
+      border-radius: 8px; 
+      margin-bottom: 20px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    }
+    h1 { 
+      font-size: 28px; 
+      margin-bottom: 10px; 
+    }
+    .status {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .status.pass {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .status.fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .summary { 
+      display: flex; 
+      gap: 20px; 
+      margin-top: 20px; 
+      flex-wrap: wrap;
+    }
+    .stat { 
+      background: #f8f8f8; 
+      padding: 15px 20px; 
+      border-radius: 6px; 
+      flex: 1;
+      min-width: 150px;
+    }
+    .stat-value { 
+      font-size: 32px; 
+      font-weight: bold; 
+    }
+    .stat-label { 
+      font-size: 14px; 
+      color: #666; 
+      margin-top: 5px; 
+    }
+    .links {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .link-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .link-btn:hover {
+      background: #2563eb;
+    }
+    .link-btn.secondary {
+      background: #6b7280;
+    }
+    .link-btn.secondary:hover {
+      background: #4b5563;
+    }
+    .comparison {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .comparison h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .image-card {
+      background: #f9fafb;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #e5e7eb;
+    }
+    .image-card h3 {
+      background: #374151;
+      color: white;
+      padding: 12px 15px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .image-card.figma h3 {
+      background: #a78bfa;
+    }
+    .image-card.storybook h3 {
+      background: #ff4785;
+    }
+    .image-card.diff h3 {
+      background: #ef4444;
+    }
+    .image-card img {
+      width: 100%;
+      display: block;
+      background: white;
+    }
+    .diff-full {
+      grid-column: 1 / -1;
+    }
+    .suggestions {
+      background: #fef3c7;
+      border: 2px solid #fbbf24;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .suggestions h3 {
+      color: #92400e;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    .suggestions ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .suggestions li {
+      padding: 10px 0;
+      border-bottom: 1px solid #fbbf24;
+      color: #78350f;
+    }
+    .suggestions li:last-child {
+      border-bottom: none;
+    }
+    .suggestions code {
+      background: #fde68a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎨 Figma-Storybook Validation Report</h1>
+    <div>Block: <strong>${blockName}</strong></div>
+    <div class="status ${result.passed ? 'pass' : 'fail'}">
+      ${result.passed ? '✅ PASSED' : '❌ FAILED'}
+    </div>
+    
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-value" style="color: ${result.passed ? '#22c55e' : '#ef4444'}">
+          ${result.diffPercentage.toFixed(2)}%
+        </div>
+        <div class="stat-label">Difference</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">${result.iterations}</div>
+        <div class="stat-label">Iterations</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color: ${result.passed ? '#22c55e' : '#6b7280'}">
+          ${result.passed ? '< 0.1%' : '≥ 0.1%'}
+        </div>
+        <div class="stat-label">Threshold</div>
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="${figmaUrl}" target="_blank" class="link-btn">
+        🎨 Open in Figma
+      </a>
+      <a href="${storybookUrl}" target="_blank" class="link-btn secondary">
+        📖 Open in Storybook
+      </a>
+    </div>
+  </div>
+
+  <div class="comparison">
+    <h2>Visual Comparison</h2>
+    
+    <div class="image-grid">
+      <div class="image-card figma">
+        <h3>Figma Design (Target)</h3>
+        <img src="${result.figmaPath.split('/').pop()}" alt="Figma Design">
+      </div>
+      
+      <div class="image-card storybook">
+        <h3>Storybook Implementation (Actual)</h3>
+        <img src="${result.storybookPath.split('/').pop()}" alt="Storybook Implementation">
+      </div>
+    </div>
+
+    ${!result.passed ? `
+      <div class="image-grid">
+        <div class="image-card diff diff-full">
+          <h3>Pixel Difference (Pink = Different)</h3>
+          <img src="${result.diffPath.split('/').pop()}" alt="Difference">
+        </div>
+      </div>
+    ` : ''}
+  </div>
+
+  ${!result.passed ? `
+    <div class="suggestions">
+      <h3>💡 Suggested Next Steps</h3>
+      <ul>
+        <li>
+          <strong>Visual Review:</strong> Compare the Figma design (purple) with Storybook (pink) above.
+          The diff image shows exact pixel differences in pink/red.
+        </li>
+        <li>
+          <strong>Common Issues:</strong>
+          <code>spacing</code>, <code>colors</code>, <code>font-size</code>, 
+          <code>border-radius</code>, <code>padding/margin</code>
+        </li>
+        <li>
+          <strong>Use Figma Inspect:</strong> Click "Open in Figma" to get exact CSS values.
+        </li>
+        <li>
+          <strong>Re-run after fixes:</strong> 
+          <code>npm run validate-block -- --block=${blockName} --node-id=${nodeId}</code>
+        </li>
+        <li>
+          <strong>Vision LLM Analysis (Optional):</strong>
+          <code>npm run analyze-diff -- --block=${blockName} --iteration=${result.iterations}</code>
+        </li>
+      </ul>
+    </div>
+  ` : `
+    <div class="suggestions" style="background: #d1fae5; border-color: #10b981;">
+      <h3 style="color: #065f46;">✅ Perfect Match!</h3>
+      <ul>
+        <li style="color: #065f46; border-bottom-color: #10b981;">
+          Your Storybook implementation matches the Figma design within the acceptable threshold (< 0.1% difference).
+        </li>
+        <li style="color: #065f46; border-bottom-color: #10b981;">
+          No further action required. You can proceed with confidence! 🎉
+        </li>
+      </ul>
+    </div>
+  `}
+
+  <div class="footer">
+    <p>Generated: ${new Date().toLocaleString()}</p>
+    <p>Automated Figma-Storybook Visual Validation</p>
+  </div>
+</body>
+</html>
+  `;
+
+  writeFileSync(reportPath, html);
+  return reportPath;
+}
+
 async function automatedValidationLoop(blockName, fileId, nodeId, demoMode = false) {
   console.log(`\n${'='.repeat(70)}`);
   console.log(`🔄 Automated Figma-Storybook Visual Validation Loop`);
@@ -438,6 +735,24 @@ async function automatedValidationLoop(blockName, fileId, nodeId, demoMode = fal
   }
   console.log(`${'='.repeat(70)}\n`);
   console.log(`📁 All screenshots saved to: ${SCREENSHOTS_DIR}\n`);
+  
+  // Generate HTML report
+  console.log(`📊 Generating HTML report...`);
+  const reportPath = await generateHTMLReport(
+    blockName,
+    fileId,
+    nodeId,
+    {
+      figmaPath: join(SCREENSHOTS_DIR, `${blockName}-figma-iter1.png`),
+      storybookPath: join(SCREENSHOTS_DIR, `${blockName}-storybook-iter${iteration}.png`),
+      diffPath: join(SCREENSHOTS_DIR, `${blockName}-diff-iter${iteration}.png`),
+      diffPercentage: lastDiffPercentage,
+      passed: isMatch,
+      iterations: iteration,
+    }
+  );
+  console.log(`   Report: ${reportPath}`);
+  console.log(`\n💡 Open report: open ${reportPath}\n`);
 }
 
 // Main execution
