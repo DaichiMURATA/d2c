@@ -46,9 +46,9 @@
   margin: 0;
   padding-bottom: var(--spacing-scale-48, 48px);
   font-family: var(--font-family-body, 'Noto Sans JP', sans-serif);
-  font-size: 48px;  /* Increased from 40px to 48px for demo: visible in both Storybook and Playwright */
+  font-size: var(--typography-heading-40-size, 40px);
   font-weight: var(--typography-weight-bold, 700);
-  line-height: 72px; /* Adjusted from 64px to maintain proportion */
+  line-height: 64px; /* Fixed: Figma value is 64px, not variable */
   color: var(--color-neutral-0, #fff);
 }
 
@@ -106,7 +106,7 @@
 
   .hero-heading,
   .hero h1 {
-    font-size: 48px;  /* Increased for demo consistency */
+    font-size: var(--typography-size-40, 40px);
   }
 
   .hero-body,
@@ -124,6 +124,6 @@
 
   .hero-heading,
   .hero h1 {
-    font-size: 40px;  /* Increased from 32px for demo consistency */
+    font-size: var(--typography-size-32, 32px);
   }
 }
