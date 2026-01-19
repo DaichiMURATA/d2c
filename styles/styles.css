@@ -232,7 +232,7 @@ main img {
 
 /* sections */
 main > .section {
-  margin: 40px 0;
+  margin: 64px 0;  /* Increased from 40px to 64px for demo: affects page layout but not individual block stories */
 }
 
 main > .section > div {
