@@ -2,6 +2,8 @@
 
 **Figmaデザインと実装の整合性を担保し、フロントエンド不具合を撲滅するEDSテンプレート**
 
+<!-- Code Sync enabled: Dark Alley (code-based editing) -->
+
 [![Chromatic](https://img.shields.io/badge/Chromatic-Visual_Regression-orange)](https://www.chromatic.com/)
 [![Storybook](https://img.shields.io/badge/Storybook-Component_Library-ff4785)](https://storybook.js.org/)
 [![Adobe EDS](https://img.shields.io/badge/Adobe-Edge_Delivery_Services-red)](https://www.aem.live/)
