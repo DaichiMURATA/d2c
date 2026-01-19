@@ -93,13 +93,14 @@ function createCarouselHTML({ slides = 1, hasContent = true, contentPosition = '
     const rowEnd = '</div>';
 
     // Cell 1: Image (always present)
+    // Using fixed seed for consistent images in visual regression tests
     const imageCell = `
         <div>
           <picture>
-            <source type="image/webp" srcset="https://picsum.photos/2000/640?random=${i}" media="(min-width: 600px)">
-            <source type="image/webp" srcset="https://picsum.photos/750/480?random=${i}">
-            <source type="image/jpeg" srcset="https://picsum.photos/2000/640?random=${i}" media="(min-width: 600px)">
-            <img loading="lazy" alt="Slide ${i + 1}" src="https://picsum.photos/750/480?random=${i}" width="1600" height="640">
+            <source type="image/webp" srcset="https://picsum.photos/seed/carousel-${i}/2000/640.webp" media="(min-width: 600px)">
+            <source type="image/webp" srcset="https://picsum.photos/seed/carousel-${i}/750/480.webp">
+            <source type="image/jpeg" srcset="https://picsum.photos/seed/carousel-${i}/2000/640.jpg" media="(min-width: 600px)">
+            <img loading="lazy" alt="Slide ${i + 1}" src="https://picsum.photos/seed/carousel-${i}/750/480.jpg" width="1600" height="640">
           </picture>
         </div>`;
 
