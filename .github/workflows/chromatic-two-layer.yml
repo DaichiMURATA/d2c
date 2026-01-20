@@ -34,6 +34,9 @@ jobs:
       build_number: ${{ steps.chromatic.outputs.build_number }}
       chromatic_url: ${{ steps.chromatic.outputs.chromatic_url }}
       story_count: ${{ steps.chromatic.outputs.story_count }}
+      visual_changes: ${{ steps.parse_chromatic.outputs.visual_changes }}
+      a11y_violations: ${{ steps.a11y_test.outputs.violations_count }}
+      a11y_summary: ${{ steps.a11y_test.outputs.summary }}
     
     steps:
       - name: Checkout repository
@@ -49,6 +52,9 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
       
       - name: Build Storybook
         run: npm run build-storybook
@@ -108,12 +114,79 @@ jobs:
             fi
           fi
       
+      - name: Parse Chromatic Output (Extract Visual Changes)
+        id: parse_chromatic
+        run: |
+          echo "📊 Parsing Chromatic output for visual changes..."
+          
+          cat chromatic-storybook-output.txt
+          
+          # Try multiple patterns to extract changes count
+          CHANGES=0
+          
+          # Pattern 1: "Found X visual changes" or "Found X change"
+          PATTERN1=$(grep -oiP 'found\s+\d+\s+(?:visual\s+)?changes?' chromatic-storybook-output.txt | grep -oP '\d+' | head -1 || echo "0")
+          
+          # Pattern 2: "X changes detected" or "X change detected"
+          PATTERN2=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Pattern 3: "X stories with changes" or "X story with changes"
+          PATTERN3=$(grep -oiP '\d+\s+stor(?:y|ies)\s+with\s+changes?' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Pattern 4: Check for "unreviewed" or "pending" changes
+          PATTERN4=$(grep -oiP '\d+\s+(?:unreviewed|pending)' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Use the maximum value found
+          CHANGES=$PATTERN1
+          [ "$PATTERN2" -gt "$CHANGES" ] && CHANGES=$PATTERN2
+          [ "$PATTERN3" -gt "$CHANGES" ] && CHANGES=$PATTERN3
+          [ "$PATTERN4" -gt "$CHANGES" ] && CHANGES=$PATTERN4
+          
+          echo "📊 Pattern results: P1=$PATTERN1, P2=$PATTERN2, P3=$PATTERN3, P4=$PATTERN4"
+          echo "visual_changes=${CHANGES}" >> $GITHUB_OUTPUT
+          echo "✅ Visual changes detected: ${CHANGES}"
+      
+      - name: Run Accessibility Tests
+        id: a11y_test
+        run: |
+          echo "♿ Running accessibility tests with Playwright + axe-core..."
+          
+          # Create test-results directory
+          mkdir -p test-results
+          
+          # Run custom a11y test script
+          npm run test:a11y || true
+          
+          # Parse a11y violations
+          if [ -f "test-results/a11y-violations.json" ]; then
+            VIOLATIONS_COUNT=$(jq 'length' test-results/a11y-violations.json)
+            
+            # Generate summary
+            SUMMARY=""
+            if [ "$VIOLATIONS_COUNT" -eq 0 ]; then
+              SUMMARY="✅ No accessibility violations"
+            else
+              # Get unique rules
+              RULES=$(jq -r '.[].rule' test-results/a11y-violations.json | sort -u | head -5 | tr '\n' ',' | sed 's/,$//')
+              SUMMARY="❌ ${VIOLATIONS_COUNT} violations (${RULES})"
+            fi
+            
+            echo "violations_count=${VIOLATIONS_COUNT}" >> $GITHUB_OUTPUT
+            echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
+            echo "✅ A11y violations: ${VIOLATIONS_COUNT}"
+          else
+            echo "violations_count=0" >> $GITHUB_OUTPUT
+            echo "summary=⚠️ A11y test not completed" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Upload Chromatic output
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: layer1-chromatic-output
-          path: chromatic-storybook-output.txt
+          path: |
+            chromatic-storybook-output.txt
+            test-results/
           retention-days: 7
       
       - name: Upload Storybook build (on failure)
@@ -152,6 +225,7 @@ jobs:
       test_status: ${{ steps.tests.outcome }}
       chromatic_url: ${{ steps.chromatic_upload.outputs.chromatic_url }}
       build_number: ${{ steps.chromatic_upload.outputs.build_number }}
+      visual_changes: ${{ steps.parse_chromatic_playwright.outputs.visual_changes }}
     
     env:
       # EDS URL Pattern: https://{branch}--d2c--daichimurata.aem.live/
@@ -238,6 +312,39 @@ jobs:
             fi
           fi
       
+      - name: Parse Chromatic Output (Extract Visual Changes - Playwright)
+        id: parse_chromatic_playwright
+        if: always() && steps.chromatic_upload.outcome == 'success'
+        run: |
+          echo "📊 Parsing Chromatic output for visual changes (Playwright)..."
+          
+          cat chromatic-output.txt
+          
+          # Try multiple patterns to extract changes count
+          CHANGES=0
+          
+          # Pattern 1: "Found X visual changes" or "Found X change"
+          PATTERN1=$(grep -oiP 'found\s+\d+\s+(?:visual\s+)?changes?' chromatic-output.txt | grep -oP '\d+' | head -1 || echo "0")
+          
+          # Pattern 2: "X changes detected" or "X change detected"
+          PATTERN2=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Pattern 3: "X snapshots with changes" or "X snapshot with changes"
+          PATTERN3=$(grep -oiP '\d+\s+snapshots?\s+with\s+changes?' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Pattern 4: Check for "unreviewed" or "pending" changes
+          PATTERN4=$(grep -oiP '\d+\s+(?:unreviewed|pending)' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          
+          # Use the maximum value found
+          CHANGES=$PATTERN1
+          [ "$PATTERN2" -gt "$CHANGES" ] && CHANGES=$PATTERN2
+          [ "$PATTERN3" -gt "$CHANGES" ] && CHANGES=$PATTERN3
+          [ "$PATTERN4" -gt "$CHANGES" ] && CHANGES=$PATTERN4
+          
+          echo "📊 Pattern results: P1=$PATTERN1, P2=$PATTERN2, P3=$PATTERN3, P4=$PATTERN4"
+          echo "visual_changes=${CHANGES}" >> $GITHUB_OUTPUT
+          echo "✅ Visual changes detected: ${CHANGES}"
+      
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -289,14 +396,22 @@ jobs:
               const chromaticUrl = '${{ needs.layer1-storybook.outputs.chromatic_url }}';
               const buildNumber = '${{ needs.layer1-storybook.outputs.build_number }}';
               const storyCount = '${{ needs.layer1-storybook.outputs.story_count }}';
+              const visualChanges = '${{ needs.layer1-storybook.outputs.visual_changes }}' || '0';
+              const a11yViolations = '${{ needs.layer1-storybook.outputs.a11y_violations }}' || '0';
+              const a11ySummary = '${{ needs.layer1-storybook.outputs.a11y_summary }}' || 'Not available';
+              
               body += '✅ **Executed** - Changed block stories tested\n';
-              // Debug output in PR comment
+              
+              // Chromatic Build Link
               if (chromaticUrl) {
                 body += `- 🔗 [View Chromatic Build #${buildNumber} →](${chromaticUrl})\n`;
               } else {
                 body += `- ⚠️ Chromatic URL not available\n`;
               }
-              body += `- Stories tested: ${storyCount}\n`;
+              
+              body += `- 📊 Stories tested: ${storyCount}\n`;
+              body += `- 🎨 **Visual changes detected: ${visualChanges}**\n`;
+              body += `- ♿ **Accessibility: ${a11ySummary}**\n`;
               body += '- ⚡ Only changed blocks are tested for efficiency\n';
             } else if (layer1Status === 'skipped') {
               body += '⏭️ **Skipped** - Layer 1 not requested\n';
@@ -311,13 +426,17 @@ jobs:
               body += '✅ **Executed** - E2E pages tested\n';
               const chromaticUrl = '${{ needs.layer2-playwright.outputs.chromatic_url }}';
               const buildNumber = '${{ needs.layer2-playwright.outputs.build_number }}';
-              // Debug output in PR comment
+              const visualChanges = '${{ needs.layer2-playwright.outputs.visual_changes }}' || '0';
+              
+              // Chromatic Build Link
               if (chromaticUrl) {
                 body += `- 🔗 [View Chromatic Build #${buildNumber} →](${chromaticUrl})\n`;
               } else {
                 body += `- ⚠️ Chromatic URL not available\n`;
               }
-              body += '- Screenshots captured and available in artifacts\n';
+              
+              body += `- 🎨 **Visual changes detected: ${visualChanges}**\n`;
+              body += '- 📸 Screenshots captured and available in artifacts\n';
               body += '- 📄 Test pages defined in `config/chromatic/chromatic-pages.config.json`\n';
               body += `- Source: \`${{ github.head_ref || github.ref_name }}\`\n`;
               body += `- Target: \`${{ github.base_ref || 'develop' }}\`\n`;
