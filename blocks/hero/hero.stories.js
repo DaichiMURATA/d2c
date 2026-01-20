@@ -38,7 +38,7 @@ Large featured content section, typically used at the top of pages.
 /**
  * Creates EDS-style hero block DOM structure
  */
-const createHeroBlock = ({ heading = 'Heading in Block' }) => {
+const createHeroBlock = ({ heading = 'Heading in Block', includeA11yIssues = false }) => {
   const block = document.createElement('div');
   block.className = 'hero';
 
@@ -50,6 +50,28 @@ const createHeroBlock = ({ heading = 'Heading in Block' }) => {
   const h1 = document.createElement('h1');
   h1.textContent = heading;
   textCell.appendChild(h1);
+
+  // Add accessibility issues for testing (if enabled)
+  if (includeA11yIssues) {
+    // Issue 1: Image without alt text
+    const img = document.createElement('img');
+    img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="50"%3E%3Crect fill="%23ddd" width="100" height="50"/%3E%3C/svg%3E';
+    // Missing alt attribute - a11y violation
+    textCell.appendChild(img);
+
+    // Issue 2: Low contrast text
+    const lowContrastText = document.createElement('p');
+    lowContrastText.textContent = 'Low contrast text';
+    lowContrastText.style.color = '#999'; // Gray on potentially gray background - contrast issue
+    lowContrastText.style.fontSize = '12px';
+    textCell.appendChild(lowContrastText);
+
+    // Issue 3: Empty link
+    const emptyLink = document.createElement('a');
+    emptyLink.href = '#';
+    // No text content - a11y violation
+    textCell.appendChild(emptyLink);
+  }
 
   row.appendChild(textCell);
   block.appendChild(row);
@@ -82,6 +104,19 @@ export const Default = {
     docs: {
       story: {
         description: 'Default hero with heading text on DNA螺旋 background (matches Figma)',
+      },
+    },
+    chromatic: { delay: 300 },
+  },
+};
+
+// Test Story: Hero with Accessibility Issues (for testing a11y detection)
+export const WithAccessibilityIssues = {
+  render: () => Template({ heading: 'Hero with A11y Issues', includeA11yIssues: true }),
+  parameters: {
+    docs: {
+      story: {
+        description: 'Hero with intentional accessibility violations for testing purposes (missing alt, low contrast, empty link)',
       },
     },
     chromatic: { delay: 300 },

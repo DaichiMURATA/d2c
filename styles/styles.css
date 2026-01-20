@@ -232,7 +232,7 @@ main img {
 
 /* sections */
 main > .section {
-  margin: 40px 0;
+  margin: 48px 0;  /* Changed from 40px to 48px for testing visual diff detection */
 }
 
 main > .section > div {
