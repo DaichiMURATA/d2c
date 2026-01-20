@@ -124,14 +124,14 @@ jobs:
           # Try multiple patterns to extract changes count
           CHANGES=0
           
-          # Pattern 1: "X changes detected" or "X change detected"
-          PATTERN1=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 1: "Found X visual changes" or "Found X change"
+          PATTERN1=$(grep -oiP 'found\s+\d+\s+(?:visual\s+)?changes?' chromatic-storybook-output.txt | grep -oP '\d+' | head -1 || echo "0")
           
-          # Pattern 2: "X stories with changes" or "X story with changes"
-          PATTERN2=$(grep -oiP '\d+\s+stor(?:y|ies)\s+with\s+changes?' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 2: "X changes detected" or "X change detected"
+          PATTERN2=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
           
-          # Pattern 3: Just "X change" or "X changes" (more generic)
-          PATTERN3=$(grep -oiP '\d+\s+changes?' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 3: "X stories with changes" or "X story with changes"
+          PATTERN3=$(grep -oiP '\d+\s+stor(?:y|ies)\s+with\s+changes?' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
           
           # Pattern 4: Check for "unreviewed" or "pending" changes
           PATTERN4=$(grep -oiP '\d+\s+(?:unreviewed|pending)' chromatic-storybook-output.txt | grep -oP '^\d+' | head -1 || echo "0")
@@ -323,14 +323,14 @@ jobs:
           # Try multiple patterns to extract changes count
           CHANGES=0
           
-          # Pattern 1: "X changes detected" or "X change detected"
-          PATTERN1=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 1: "Found X visual changes" or "Found X change"
+          PATTERN1=$(grep -oiP 'found\s+\d+\s+(?:visual\s+)?changes?' chromatic-output.txt | grep -oP '\d+' | head -1 || echo "0")
           
-          # Pattern 2: "X snapshots with changes" or "X snapshot with changes"
-          PATTERN2=$(grep -oiP '\d+\s+snapshots?\s+with\s+changes?' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 2: "X changes detected" or "X change detected"
+          PATTERN2=$(grep -oiP '\d+\s+changes?\s+(detected|found)' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
           
-          # Pattern 3: Just "X change" or "X changes" (more generic)
-          PATTERN3=$(grep -oiP '\d+\s+changes?' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
+          # Pattern 3: "X snapshots with changes" or "X snapshot with changes"
+          PATTERN3=$(grep -oiP '\d+\s+snapshots?\s+with\s+changes?' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
           
           # Pattern 4: Check for "unreviewed" or "pending" changes
           PATTERN4=$(grep -oiP '\d+\s+(?:unreviewed|pending)' chromatic-output.txt | grep -oP '^\d+' | head -1 || echo "0")
