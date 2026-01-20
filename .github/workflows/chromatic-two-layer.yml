@@ -53,6 +53,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
       - name: Build Storybook
         run: npm run build-storybook
       
@@ -131,13 +134,13 @@ jobs:
       - name: Run Accessibility Tests
         id: a11y_test
         run: |
-          echo "♿ Running accessibility tests with Storybook Test Runner..."
+          echo "♿ Running accessibility tests with Playwright + axe-core..."
           
           # Create test-results directory
           mkdir -p test-results
           
-          # Run test-storybook in CI mode
-          npm run test-storybook:ci -- --json --outputFile=test-results/test-results.json || true
+          # Run custom a11y test script
+          npm run test:a11y || true
           
           # Parse a11y violations
           if [ -f "test-results/a11y-violations.json" ]; then
