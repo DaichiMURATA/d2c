@@ -24,30 +24,27 @@
       "lastUpdated": "2026-01-16"
     },
     "hero": {
-      "url": "https://www.figma.com/file/FILE_ID/FILE_NAME?node-id=NODE_ID",
-      "description": "Hero block with multiple layout variants",
-      "variants": [
-        "Default",
-        "Centered",
-        "FullWidth",
-        "WithImage",
-        "WithoutImage"
-      ],
-      "userStory": "docs/user-stories/hero-block.md",
-      "status": "pending",
-      "lastUpdated": "2026-01-09"
+      "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework?node-id=8668-503",
+      "nodeId": "8668:503",
+      "description": "Hero block with heading and background",
+      "variants": {
+        "Default": "8668:503"
+      },
+      "status": "testing",
+      "lastUpdated": "2026-01-20"
     },
-    "card": {
-      "url": "https://www.figma.com/file/FILE_ID/FILE_NAME?node-id=NODE_ID",
-      "description": "Card component with image and text",
-      "variants": [
-        "Vertical",
-        "Horizontal",
-        "Minimal"
-      ],
-      "userStory": "docs/user-stories/card-block.md",
-      "status": "pending",
-      "lastUpdated": "2026-01-09"
+    "cards": {
+      "url": "https://www.figma.com/design/MJTwyRbE5EVdlci3UIwsut/SandBox-0108-AEM-Figma-Design-Framework?node-id=531-54",
+      "nodeId": "531:54",
+      "description": "Cards block with grid layout",
+      "variants": {
+        "WithImageNoLink": "521:722",
+        "WithImageAndLinkHover": "956:526",
+        "NoImageNoLink": "531:97",
+        "WithImageAndLink": "956:495"
+      },
+      "status": "testing",
+      "lastUpdated": "2026-01-22"
     }
   },
   "designTokens": {

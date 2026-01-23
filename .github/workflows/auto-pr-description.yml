@@ -13,19 +13,31 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Generate Preview URLs
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Generate Preview URLs from project.config.json
         id: generate-urls
         run: |
           # ブランチ名を取得
           BRANCH_NAME="${{ github.head_ref }}"
           TARGET_BRANCH="${{ github.base_ref }}"
           
+          # project.config.jsonから設定を読み込み
+          PROJECT_NAME=$(jq -r '.project.name' config/project.config.json)
+          EDS_OWNER=$(jq -r '.eds.owner' config/project.config.json)
+          
           # AEM.page URL (PSI チェック用 - 短いキャッシュ)
-          TEST_URL="https://${BRANCH_NAME}--d2c--daichimurata.aem.page/"
+          TEST_URL="https://${BRANCH_NAME}--${PROJECT_NAME}--${EDS_OWNER}.aem.page/"
           
           # AEM.live Preview URL (本番用 - 長いキャッシュ)
-          SOURCE_URL="https://${BRANCH_NAME}--d2c--daichimurata.aem.live/"
-          TARGET_URL="https://${TARGET_BRANCH}--d2c--daichimurata.aem.live/"
+          SOURCE_URL="https://${BRANCH_NAME}--${PROJECT_NAME}--${EDS_OWNER}.aem.live/"
+          TARGET_URL="https://${TARGET_BRANCH}--${PROJECT_NAME}--${EDS_OWNER}.aem.live/"
           
           echo "test_url=${TEST_URL}" >> $GITHUB_OUTPUT
           echo "source_url=${SOURCE_URL}" >> $GITHUB_OUTPUT
@@ -67,8 +79,8 @@ jobs:
             // プレースホルダーを実際のURLに置き換え
             let newBody = currentBody
               .replace(/\{\{BRANCH_NAME\}\}/g, branchName)
-              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--d2c--daichimurata\.aem\.page\//g, testUrl)
-              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--d2c--daichimurata\.aem\.live\//g, sourceUrl);
+              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--[^\/]+\.aem\.page\//g, testUrl)
+              .replace(/https:\/\/\{\{BRANCH_NAME\}\}--[^\/]+\.aem\.live\//g, sourceUrl);
             
             // もしプレースホルダーがない場合（手動で作成されたPR）、Preview URLセクションを追加
             if (!newBody.includes('Preview URLs') && !newBody.includes('aem.live') && !newBody.includes('aem.page')) {
@@ -137,7 +149,7 @@ jobs:
             - \`aem.page\`: 開発用、短いキャッシュ、PSI チェック用
             - \`aem.live\`: 本番用、長いキャッシュ、実際のプレビュー用
 
-            *Preview URLs are automatically generated from the branch name.*`;
+            *Preview URLs are automatically generated from project.config.json*`;
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,

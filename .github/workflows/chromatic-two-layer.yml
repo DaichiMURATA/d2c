@@ -227,12 +227,6 @@ jobs:
       build_number: ${{ steps.chromatic_upload.outputs.build_number }}
       visual_changes: ${{ steps.parse_chromatic_playwright.outputs.visual_changes }}
     
-    env:
-      # EDS URL Pattern: https://{branch}--d2c--daichimurata.aem.live/
-      # Add cache busting parameter to ensure fresh content
-      SOURCE_URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live?cache=bust
-      TARGET_URL: https://${{ github.base_ref || 'develop' }}--d2c--daichimurata.aem.live
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -248,13 +242,34 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Generate EDS URLs from project.config.json
+        id: generate-urls
+        run: |
+          # project.config.jsonから設定を読み込み
+          PROJECT_NAME=$(jq -r '.project.name' config/project.config.json)
+          EDS_OWNER=$(jq -r '.eds.owner' config/project.config.json)
+          
+          # EDS URL生成
+          SOURCE_BRANCH="${{ github.head_ref || github.ref_name }}"
+          TARGET_BRANCH="${{ github.base_ref || 'develop' }}"
+          
+          SOURCE_URL="https://${SOURCE_BRANCH}--${PROJECT_NAME}--${EDS_OWNER}.aem.live?cache=bust"
+          TARGET_URL="https://${TARGET_BRANCH}--${PROJECT_NAME}--${EDS_OWNER}.aem.live"
+          
+          echo "source_url=${SOURCE_URL}" >> $GITHUB_OUTPUT
+          echo "target_url=${TARGET_URL}" >> $GITHUB_OUTPUT
+          
+          echo "📝 Generated EDS URLs:"
+          echo "  Source: ${SOURCE_URL}"
+          echo "  Target: ${TARGET_URL}"
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       
       - name: Run Playwright E2E tests
         id: tests
         env:
-          SOURCE_URL: ${{ env.SOURCE_URL }}
+          SOURCE_URL: ${{ steps.generate-urls.outputs.source_url }}
         run: npm run test:chromatic
         continue-on-error: true
       
@@ -362,8 +377,8 @@ jobs:
           echo "## 📊 Layer 2: Playwright E2E Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- Test Status: ${{ steps.tests.outcome }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Source URL: ${{ env.SOURCE_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Target URL: ${{ env.TARGET_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Source URL: ${{ steps.generate-urls.outputs.source_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Target URL: ${{ steps.generate-urls.outputs.target_url }}" >> $GITHUB_STEP_SUMMARY
           if [ -n "${{ steps.chromatic_upload.outputs.url }}" ]; then
             echo "- Chromatic: ${{ steps.chromatic_upload.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           fi
@@ -440,8 +455,7 @@ jobs:
               body += '- 📄 Test pages defined in `config/chromatic/chromatic-pages.config.json`\n';
               body += `- Source: \`${{ github.head_ref || github.ref_name }}\`\n`;
               body += `- Target: \`${{ github.base_ref || 'develop' }}\`\n`;
-              body += `- Source URL: https://${{ github.head_ref || github.ref_name }}--d2c--daichimurata.aem.live/\n`;
-              body += `- Target URL: https://${{ github.base_ref || 'develop' }}--d2c--daichimurata.aem.live/\n`;
+              body += '\n*URLs dynamically generated from config/project.config.json*\n';
             } else if (layer2Status === 'skipped') {
               body += '⏭️ **Skipped** - Layer 2 not requested\n';
             } else {

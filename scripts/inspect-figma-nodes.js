@@ -10,9 +10,12 @@
  *   node scripts/inspect-figma-nodes.js --node-id=9392:122
  */
 
+import { getFigmaConfig } from './utils/load-project-config.js';
+
 const FIGMA_API_BASE = 'https://api.figma.com/v1';
-const FIGMA_FILE_ID = process.env.FIGMA_FILE_ID || 'MJTwyRbE5EVdlci3UIwsut';
-const FIGMA_PERSONAL_ACCESS_TOKEN = process.env.FIGMA_PERSONAL_ACCESS_TOKEN || process.env.FIGMA_ACCESS_TOKEN;
+const figmaConfig = getFigmaConfig();
+const FIGMA_FILE_ID = figmaConfig.fileId;
+const FIGMA_PERSONAL_ACCESS_TOKEN = figmaConfig.accessToken;
 
 async function inspectNode(nodeId) {
   if (!FIGMA_PERSONAL_ACCESS_TOKEN) {

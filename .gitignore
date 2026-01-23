@@ -35,3 +35,6 @@ test-results/
 # Build logs
 build-archive.log
 build-storybook.log
+
+# Environment variables (contains secrets)
+.env

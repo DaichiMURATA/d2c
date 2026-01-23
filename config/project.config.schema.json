@@ -1,0 +1,184 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "d2c Project Configuration",
+  "description": "Configuration file for d2c (Design-to-Code) projects",
+  "type": "object",
+  "required": ["project", "repository", "eds", "figma"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "description": "Project metadata",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Project name (used in URLs and configurations)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Project description"
+        },
+        "version": {
+          "type": "string",
+          "description": "Project version (semver)",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "description": "GitHub repository information",
+      "required": ["owner", "name", "url"],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "GitHub repository owner (user or organization)"
+        },
+        "name": {
+          "type": "string",
+          "description": "GitHub repository name"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHub repository URL"
+        },
+        "issues": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHub issues URL"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "description": "Project homepage URL"
+        }
+      }
+    },
+    "eds": {
+      "type": "object",
+      "description": "Adobe Edge Delivery Services configuration",
+      "required": ["owner", "urlPattern"],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "EDS owner (usually same as GitHub owner)"
+        },
+        "urlPattern": {
+          "type": "string",
+          "description": "EDS URL pattern template",
+          "default": "{branch}--{project}--{owner}.aem.{domain}"
+        },
+        "domains": {
+          "type": "object",
+          "description": "EDS domain mappings",
+          "properties": {
+            "live": {
+              "type": "string",
+              "default": "aem.live"
+            },
+            "page": {
+              "type": "string",
+              "default": "aem.page"
+            }
+          }
+        },
+        "baseUrls": {
+          "type": "object",
+          "description": "Base URLs for EDS environments",
+          "properties": {
+            "live": {
+              "type": "string",
+              "format": "uri",
+              "description": "Production-like preview URL (aem.live)"
+            },
+            "page": {
+              "type": "string",
+              "format": "uri",
+              "description": "Development preview URL (aem.page)"
+            }
+          }
+        }
+      }
+    },
+    "figma": {
+      "type": "object",
+      "description": "Figma project configuration",
+      "required": ["fileId", "fileUrl"],
+      "properties": {
+        "fileId": {
+          "type": "string",
+          "description": "Figma file ID (extract from Figma URL)",
+          "pattern": "^[a-zA-Z0-9]+$"
+        },
+        "fileUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Figma file URL",
+          "pattern": "^https://www\\.figma\\.com/"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Figma project name (usually same as project.name)"
+        }
+      }
+    },
+    "chromatic": {
+      "type": "object",
+      "description": "Chromatic visual testing configuration",
+      "properties": {
+        "storybook": {
+          "type": "object",
+          "description": "Chromatic Storybook testing configuration",
+          "properties": {
+            "appIdVar": {
+              "type": "string",
+              "description": "GitHub Variable name for Storybook App ID",
+              "default": "CHROMATIC_STORYBOOK_APP_ID"
+            },
+            "tokenSecret": {
+              "type": "string",
+              "description": "GitHub Secret name for Storybook token",
+              "default": "CHROMATIC_STORYBOOK_TOKEN"
+            }
+          }
+        },
+        "playwright": {
+          "type": "object",
+          "description": "Chromatic Playwright testing configuration",
+          "properties": {
+            "appIdVar": {
+              "type": "string",
+              "description": "GitHub Variable name for Playwright App ID",
+              "default": "CHROMATIC_PLAYWRIGHT_APP_ID"
+            },
+            "tokenSecret": {
+              "type": "string",
+              "description": "GitHub Secret name for Playwright token",
+              "default": "CHROMATIC_PLAYWRIGHT_TOKEN"
+            }
+          }
+        }
+      }
+    },
+    "storybook": {
+      "type": "object",
+      "description": "Storybook development server configuration",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Storybook server URL",
+          "default": "http://localhost:6006"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Storybook server port",
+          "default": 6006,
+          "minimum": 1024,
+          "maximum": 65535
+        }
+      }
+    }
+  }
+}

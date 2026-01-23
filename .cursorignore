@@ -1,0 +1,45 @@
+# Node modules and lock files
+node_modules/**
+node_modules/
+package-lock.json
+
+# Build outputs
+storybook-static/**
+storybook-static/
+
+# Test artifacts
+test-results/**
+test-results/
+.validation-screenshots/**
+.validation-screenshots/
+.visual-regression/**
+.visual-regression/
+.visual-compare/**
+.visual-compare/
+.tmp-artifacts/**
+.tmp-artifacts/
+
+# MCP setup (contains tokens)
+.mcp-setup/**
+.mcp-setup/
+
+# Temporary files
+.DS_Store
+*.log
+debug-storybook.log
+build-archive.log
+
+# Git directory
+.git/**
+.git/
+
+# Large binary files
+*.dylib
+*.node
+*.wasm
+
+# Screenshots only in test/validation directories
+.validation-screenshots/*.png
+.validation-screenshots/*.jpg
+.visual-regression/**/*.png
+.visual-regression/**/*.jpg

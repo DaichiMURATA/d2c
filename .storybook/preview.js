@@ -1,6 +1,9 @@
 /** @type { import('@storybook/html-vite').Preview } */
 const preview = {
   parameters: {
+    // Storybook iframe layout settings for pixel-perfect screenshot comparison
+    layout: 'fullscreen',
+    
     // アクセシビリティテストのデフォルト設定
     a11y: {
       config: {

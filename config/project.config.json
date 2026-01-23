@@ -1,0 +1,46 @@
+{
+  "$schema": "./project.config.schema.json",
+  "project": {
+    "name": "{{PROJECT_NAME}}",
+    "description": "{{PROJECT_DESCRIPTION}}",
+    "version": "1.0.0"
+  },
+  "repository": {
+    "owner": "{{GITHUB_OWNER}}",
+    "name": "{{GITHUB_REPO}}",
+    "url": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}.git",
+    "issues": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/issues",
+    "homepage": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}#readme"
+  },
+  "eds": {
+    "owner": "{{EDS_OWNER}}",
+    "urlPattern": "{branch}--{project}--{owner}.aem.{domain}",
+    "domains": {
+      "live": "aem.live",
+      "page": "aem.page"
+    },
+    "baseUrls": {
+      "live": "https://main--{{PROJECT_NAME}}--{{EDS_OWNER}}.aem.live",
+      "page": "https://main--{{PROJECT_NAME}}--{{EDS_OWNER}}.aem.page"
+    }
+  },
+  "figma": {
+    "fileId": "{{FIGMA_FILE_ID}}",
+    "fileUrl": "{{FIGMA_FILE_URL}}",
+    "projectName": "{{PROJECT_NAME}}"
+  },
+  "chromatic": {
+    "storybook": {
+      "appIdVar": "CHROMATIC_STORYBOOK_APP_ID",
+      "tokenSecret": "CHROMATIC_STORYBOOK_TOKEN"
+    },
+    "playwright": {
+      "appIdVar": "CHROMATIC_PLAYWRIGHT_APP_ID",
+      "tokenSecret": "CHROMATIC_PLAYWRIGHT_TOKEN"
+    }
+  },
+  "storybook": {
+    "url": "http://localhost:6006",
+    "port": 6006
+  }
+}

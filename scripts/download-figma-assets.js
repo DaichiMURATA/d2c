@@ -12,13 +12,15 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { getFigmaConfig } from './utils/load-project-config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const FIGMA_API_BASE = 'https://api.figma.com/v1';
-const FIGMA_FILE_ID = process.env.FIGMA_FILE_ID || 'MJTwyRbE5EVdlci3UIwsut';
-const FIGMA_TOKEN = process.env.FIGMA_PERSONAL_ACCESS_TOKEN || process.env.FIGMA_ACCESS_TOKEN;
+const figmaConfig = getFigmaConfig();
+const FIGMA_FILE_ID = figmaConfig.fileId;
+const FIGMA_TOKEN = figmaConfig.accessToken;
 
 async function fetchNodeData(nodeId) {
   if (!FIGMA_TOKEN) {
@@ -53,26 +55,25 @@ async function fetchNodeData(nodeId) {
 function findImageNodes(node, images = [], parentName = '') {
   const nodePath = parentName ? `${parentName} > ${node.name}` : node.name;
   
-  // Check if this node is an image (RECTANGLE with IMAGE fill)
-  if (node.type === 'RECTANGLE' && node.fills) {
-    const hasImageFill = node.fills.some(fill => fill.type === 'IMAGE');
-    if (hasImageFill) {
-      images.push({
-        nodeId: node.id,
-        nodeName: node.name,
-        nodePath,
-        type: 'RECTANGLE_WITH_IMAGE',
-      });
-    }
-  }
-
-  // Check if this is a direct IMAGE node (less common but possible)
-  if (node.type === 'IMAGE') {
+  // Check for IMAGE fills in any node type (COMPONENT, FRAME, RECTANGLE, etc.)
+  // Check both 'fills' and 'background' properties
+  const fillsToCheck = [
+    ...(node.fills || []),
+    ...(node.background || [])
+  ];
+  
+  const hasImageFill = fillsToCheck.some(fill => fill && fill.type === 'IMAGE');
+  
+  if (hasImageFill) {
+    // Get the imageRef from the first IMAGE fill
+    const imageFill = fillsToCheck.find(fill => fill && fill.type === 'IMAGE');
+    
     images.push({
       nodeId: node.id,
       nodeName: node.name,
       nodePath,
-      type: 'IMAGE',
+      type: `${node.type}_WITH_IMAGE`,
+      imageRef: imageFill.imageRef,
     });
   }
 
@@ -82,6 +83,48 @@ function findImageNodes(node, images = [], parentName = '') {
   }
 
   return images;
+}
+
+async function downloadImageByRef(imageRef, outputPath) {
+  console.log(`   📥 Downloading image via imageRef: ${imageRef}`);
+
+  // Step 1: Get the file's image manifest to find the URL for this imageRef
+  const manifestUrl = `${FIGMA_API_BASE}/files/${FIGMA_FILE_ID}/images`;
+  
+  const manifestResponse = await fetch(manifestUrl, {
+    headers: {
+      'X-Figma-Token': FIGMA_TOKEN,
+    },
+  });
+
+  if (!manifestResponse.ok) {
+    throw new Error(`Failed to fetch image manifest: ${manifestResponse.statusText}`);
+  }
+
+  const manifestData = await manifestResponse.json();
+  
+  // Step 2: Find the URL for this imageRef
+  const imageUrl = manifestData.meta?.images?.[imageRef];
+  
+  if (!imageUrl) {
+    throw new Error(`No URL found for imageRef ${imageRef} in file manifest`);
+  }
+
+  console.log(`   🔗 Found image URL in manifest`);
+
+  // Step 3: Download the actual image file
+  const imageResponse = await fetch(imageUrl);
+  if (!imageResponse.ok) {
+    throw new Error(`Failed to download image: ${imageResponse.statusText}`);
+  }
+
+  const arrayBuffer = await imageResponse.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  writeFileSync(outputPath, buffer);
+  console.log(`   ✅ Saved to: ${outputPath}`);
+
+  return outputPath;
 }
 
 async function downloadImageNode(nodeId, outputPath) {
@@ -183,15 +226,27 @@ async function downloadFigmaAssets(nodeId, blockName) {
   for (let i = 0; i < imageNodes.length; i++) {
     const imageNode = imageNodes[i];
     const safeNodeName = imageNode.nodeName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    const filename = `${safeNodeName || `image-${i + 1}`}.png`;
-    const outputPath = join(outputDir, filename);
+    const filename = `${blockName}-background.png`;  // Use consistent naming for background images
+    const outputPath = join(__dirname, '..', 'blocks', blockName, filename);
 
     try {
-      await downloadImageNode(imageNode.nodeId, outputPath);
+      console.log(`   📥 Processing node ${imageNode.nodeId} (${imageNode.type})`);
+      console.log(`   📝 Node: ${imageNode.nodeName} at ${imageNode.nodePath}`);
+      
+      // Use imageRef if available (gets the actual image fill without any overlays)
+      // Otherwise fall back to nodeId export (exports the whole node as rendered)
+      if (imageNode.imageRef) {
+        console.log(`   🎯 Using imageRef to download image fill only`);
+        await downloadImageByRef(imageNode.imageRef, outputPath);
+      } else {
+        console.log(`   🎯 Using node export (may include text/overlays)`);
+        await downloadImageNode(imageNode.nodeId, outputPath);
+      }
+      
       downloadedImages.push({
         ...imageNode,
         localPath: outputPath,
-        relativePath: `./assets/${filename}`,
+        relativePath: `./${filename}`,
       });
     } catch (error) {
       console.error(`   ❌ Failed to download ${imageNode.nodeId}: ${error.message}`);

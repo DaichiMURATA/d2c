@@ -62,6 +62,14 @@ Generate EDS Block for "Hero"
   - Block生成（Figma/User Story/Living Spec）
   - Visual Regression Testing
   - トラブルシューティング
+- **[Vision AI Enhanced Generation](./docs/VISION-AI-ENHANCED-GENERATION.md)** - 🆕 Vision AI統合
+  - Figmaスクリーンショット解析でCSS生成精度向上
+  - 透明度・配置・形状を正確に検出
+  - Visual差異を50-60% → 10-15%に改善
+  - **[Direct Generation Demo](./docs/VISION-AI-DIRECT-GENERATION-DEMO.md)** - ⚡ ダイレクト生成デモ（推奨）
+    - 1ステップで完結（解析JSON不要）
+    - 検出精度98%、作業時間半減
+  - [Structured Analysis Demo](./docs/VISION-AI-DEMO-RESULTS.md) - 2ステップ解析版
 
 ### 📝 Content Creation
 - **[Content Guidelines](./docs/CONTENT-GUIDELINES.md)** - コンテンツ作成ルール
@@ -117,6 +125,8 @@ d2c/
 │  └─ chromatic-two-layer.yml      # 2層VRテスト
 │
 ├─ config/                         # 設定ファイル
+│  ├─ project.config.json          # 🆕 プロジェクト設定（要初期化）
+│  ├─ project.config.schema.json   # JSON Schema
 │  ├─ chromatic/                   # VRテスト設定
 │  │  ├─ chromatic-pages.config.json
 │  │  ├─ chromatic-pages.schema.json
@@ -128,6 +138,8 @@ d2c/
 │  └─ figma/                       # Figma URL管理
 │     └─ figma-urls.json
 │
+├─ .env.example                    # 🆕 環境変数テンプレート
+├─ .env                            # 環境変数（gitignore）
 ├─ chromatic.config.js             # Playwright設定
 └─ package.json                    # npm scripts
 ```
@@ -249,43 +261,68 @@ PR作成時に自動実行：
 
 ## 🔧 セットアップ
 
+### 新規プロジェクトとして使う場合
+
+```bash
+# 1. このリポジトリをテンプレートとしてクローン
+git clone https://github.com/daichimurata/d2c.git my-new-project
+cd my-new-project
+
+# 2. 依存パッケージインストール
+npm install
+
+# 3. プロジェクト初期化（対話形式）
+npm run init-project
+# ↓ プロジェクト名、GitHub情報、Figma情報を入力
+
+# 4. ローカル開発環境設定
+cp .env.example .env
+# .env を編集して Figma Personal Access Token を追加
+
+# 5. GitHub リポジトリ作成＆プッシュ
+git add .
+git commit -m "Initialize project"
+git remote set-url origin https://github.com/your-org/your-project.git
+git push -u origin main
+
+# 6. GitHub Secrets/Variables を設定
+# Settings > Secrets and variables > Actions
+# - Secrets: CHROMATIC_STORYBOOK_TOKEN, CHROMATIC_PLAYWRIGHT_TOKEN
+# - Variables: CHROMATIC_STORYBOOK_APP_ID, CHROMATIC_PLAYWRIGHT_APP_ID
+
+# 7. 開発開始！
+npm run storybook
+```
+
 ### 前提条件
 
 - Node.js 20+
 - Figma Personal Access Token (PAT)
 
-### インストール
+### 環境変数設定
+
+#### ローカル開発（.env ファイル）
 
 ```bash
-# リポジトリクローン
-git clone https://github.com/daichimurata/d2c.git
-cd d2c
-
-# 依存パッケージインストール
-npm install
-
-# Figma PAT設定
-export FIGMA_PERSONAL_ACCESS_TOKEN=figd_your_token_here
-
-# AEM CLI インストール（ローカル開発用）
-npm install -g @adobe/aem-cli
+# .env
+FIGMA_PERSONAL_ACCESS_TOKEN=figd_xxxxxxxxxxxxx
 ```
 
-### GitHub Secrets設定
+📖 トークン取得: https://www.figma.com/developers/api#access-tokens
 
-```bash
-CHROMATIC_STORYBOOK_PROJECT_TOKEN=project-token-xxx
-CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN=project-token-yyy
-```
+#### GitHub Settings
 
-### GitHub Variables設定
+**Secrets** (Settings > Secrets and variables > Actions > Secrets):
+- `CHROMATIC_STORYBOOK_TOKEN` - Chromatic Storybook用トークン
+- `CHROMATIC_PLAYWRIGHT_TOKEN` - Chromatic Playwright用トークン
 
-```bash
-CHROMATIC_STORYBOOK_APP_ID=your-storybook-app-id
-CHROMATIC_PLAYWRIGHT_APP_ID=your-playwright-app-id
-```
+**Variables** (Settings > Secrets and variables > Actions > Variables):
+- `CHROMATIC_STORYBOOK_APP_ID` - Chromatic Storybook App ID
+- `CHROMATIC_PLAYWRIGHT_APP_ID` - Chromatic Playwright App ID
 
-### 5. GitHub Actions自動化
+📖 Chromatic: https://www.chromatic.com/start
+
+### GitHub Actions自動化
 
 PR作成時に自動実行：
 - ✅ 2層Visual Regression Test

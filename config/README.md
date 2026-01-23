@@ -8,6 +8,9 @@
 
 ```
 config/
+├── project.config.json         🆕 プロジェクト設定（要初期化）
+├── project.config.schema.json  🆕 JSON Schema
+│
 ├── chromatic/          🎨 Visual Regression Testing設定
 │   ├── chromatic-pages.config.json
 │   ├── chromatic-pages.schema.json
@@ -24,6 +27,74 @@ config/
 
 ---
 
+## 🆕 プロジェクト設定（最重要）
+
+### `project.config.json`
+
+**用途**: プロジェクト全体の設定を一元管理
+
+**初期化方法**:
+```bash
+npm run init-project
+```
+
+**構造**:
+```json
+{
+  "project": {
+    "name": "my-project",
+    "description": "My EDS project"
+  },
+  "repository": {
+    "owner": "my-org",
+    "name": "my-project",
+    "url": "https://github.com/my-org/my-project.git"
+  },
+  "eds": {
+    "owner": "my-org",
+    "urlPattern": "{branch}--{project}--{owner}.aem.{domain}",
+    "baseUrls": {
+      "live": "https://main--my-project--my-org.aem.live",
+      "page": "https://main--my-project--my-org.aem.page"
+    }
+  },
+  "figma": {
+    "fileId": "ABC123...",
+    "fileUrl": "https://www.figma.com/design/..."
+  },
+  "chromatic": {
+    "storybook": {
+      "appIdVar": "CHROMATIC_STORYBOOK_APP_ID",
+      "tokenSecret": "CHROMATIC_STORYBOOK_TOKEN"
+    },
+    "playwright": {
+      "appIdVar": "CHROMATIC_PLAYWRIGHT_APP_ID",
+      "tokenSecret": "CHROMATIC_PLAYWRIGHT_TOKEN"
+    }
+  }
+}
+```
+
+**使用箇所**:
+- `chromatic.config.js` - EDS URL生成
+- `.github/workflows/` - GitHub Actions
+- `scripts/` - 各種スクリプト
+
+**編集方法**:
+1. 初回: `npm run init-project` で対話形式で設定
+2. 変更: `config/project.config.json` を直接編集
+
+### `project.config.schema.json`
+
+**用途**: `project.config.json`のJSON Schema定義
+
+**機能**:
+- IDEでの自動補完
+- 設定値のバリデーション
+- ドキュメント表示
+
+---
+
 ## 🎨 Chromatic (Visual Regression Testing)
 
 ### `chromatic-pages.config.json`
@@ -34,7 +105,7 @@ config/
 ```json
 {
   "$schema": "./chromatic-pages.schema.json",
-  "baseUrl": "https://main--d2c--daichimurata.aem.live",
+  "baseUrl": "https://main--my-project--my-org.aem.live",
   "pages": [
     {
       "name": "homepage",
@@ -49,6 +120,8 @@ config/
   ]
 }
 ```
+
+**注意**: `baseUrl` は `npm run init-project` 実行時に自動更新されます。
 
 **使用箇所**:
 - `tests/chromatic.spec.js` - Playwright テスト定義
