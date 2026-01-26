@@ -41,7 +41,7 @@ node scripts/download-figma-assets.js --block={blockName} --node-id={firstNodeId
 ```
 - Output: `blocks/{blockName}/{blockName}-background.png`
 
-**Step 6: Analyze Screenshots with Vision AI (SUPPLEMENTAL)**
+**Step 6: Analyze Screenshots (SUPPLEMENTAL)**
 - Use `read_file` tool on the PNG screenshot
 - Extract ONLY what Figma API cannot provide:
   - Overlay transparency (rgba alpha values)
@@ -57,6 +57,11 @@ node scripts/download-figma-assets.js --block={blockName} --node-id={firstNodeId
      - Correct: `.carousel .carousel-navigation { ... }`
      - Wrong: `.carousel-navigation { ... }`
      - Reason: Prevents style conflicts between blocks and ensures scoping
+   - **CRITICAL**: Block dimensions should be content-driven, NOT fixed from Figma
+     - ❌ NEVER: `.{blockName} { height: 595px; }` or `min-height: 595px;`
+     - ✅ CORRECT: Let content determine height naturally
+     - ✅ EXCEPTION: If Figma explicitly defines aspect-ratio constraint, use that
+     - Reason: Figma frame size is design canvas size, not production constraint
    - **PRIORITY 1**: Use CSS variables from `design-tokens.css` (check Figma boundVariables)
    - **PRIORITY 2**: Add visual details from Step 6 (transparency, etc.)
    - **PRIORITY 3**: Only use literal values if NO variable exists
@@ -121,6 +126,7 @@ npm run validate-block -- --block={blockName}
 - ❌ Write CSS selectors without `.{blockName}` prefix
 - ❌ Forget to import CSS in Stories (must import styles.css and {blockName}.css)
 - ❌ Add Storybook UI elements (autodocs, docs.description) to Stories
+- ❌ Set fixed height/min-height on block container from Figma frame size
 - ❌ Skip screenshot capture
 - ❌ Generate fewer stories than variants
 - ❌ Skip validation
@@ -139,6 +145,12 @@ npm run validate-block -- --block={blockName}
 1. **PRIORITY 1**: Figma Variables → CSS variables in `design-tokens.css`
 2. **PRIORITY 2**: Screenshot analysis (transparency, visual nuances)
 3. **PRIORITY 3**: Literal values (ONLY if no variable exists)
+
+**EXCEPTION for Block Dimensions**:
+- **NEVER** use Figma frame `height` as fixed CSS height
+- Figma frame size = design canvas size, NOT production constraint
+- Let content determine height naturally
+- Only use explicit aspect-ratio if Figma design requires it
 
 ### Decision Tree: "Should I use a CSS variable?"
 ```
@@ -207,6 +219,7 @@ Before reporting completion, verify:
 - [ ] All variant screenshots captured
 - [ ] Screenshot analyzed for supplemental details only (transparency, etc.)
 - [ ] **CSS selectors ALL start with `.{blockName}` prefix**
+- [ ] **CSS does NOT set fixed height from Figma frame size**
 - [ ] CSS uses CSS variables for ALL Figma Variables (NO hardcoded values)
 - [ ] CSS has `/* Figma Variable: ... */` or `/* 画像から検出: ... */` comments
 - [ ] CSS resets global styles where needed (button, etc.)

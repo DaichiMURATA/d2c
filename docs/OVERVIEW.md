@@ -110,9 +110,10 @@ AIの類推:
 - ✅ ただし、D2Cの自動検証ループで**視覚的には95%以上一致**を達成
 
 **D2Cの対策**:
+- Figmaデザインのキャプチャと、Figma構造どちらも見ながらHTML構造を決める
 - boundVariables優先でデザイントークン使用率90%以上
-- FigmaとStorybookの画像比較で視覚的差分を5%以下に自動修正
-- ノード名（"Title", "Navigation", "Indicators" など）から要素を推測
+- 微調整をしやすいよう、StorybookにはFigmaプラグインを入れてFigma vs Storybookのの比較を容易にする
+- 改修後にFigma vs Storybookのの比較検証ができるスクリプトを用意
 
 ---
 
@@ -168,7 +169,7 @@ Final HTML
 - ✅ カードボディは `<div class="cards-card-body">` の中に2つの `<p>` タグ
 - ⚠️ タイトルは `<p><strong>タイトル</strong></p>`（`<h3>` ではない）
 
-**Step 3: D2Cで生成したStorybook実装（最終HTML）**
+**Step 3: D2Cで生成したStorybook実装（Figmaを参照して生成した初期状態）**
 
 ![Storybook Display](./assets/Storybook.png)
 
@@ -262,6 +263,19 @@ EDS実環境で生成されるHTML構造を確認：
 
 ```javascript
 // blocks/cards/cards.stories.js
+import '../../styles/styles.css';  // ✅ グローバルスタイルを最初にインポート
+import './cards.css';              // ✅ ブロック固有スタイルをインポート
+import decorate from './cards.js';
+
+export default {
+  title: 'Blocks/Cards',
+  parameters: {
+    layout: 'fullscreen',  // ✅ Storybook UIを最小化（視覚比較の精度向上）
+  },
+  // ❌ 'autodocs' タグは使用しない（視覚比較に影響）
+  // ❌ docs.description は使用しない
+};
+
 export const Default = {
   render: () => {
     const block = document.createElement('div');
@@ -297,6 +311,11 @@ export const Default = {
     
     decorate(block);  // ✅ これでEDS実環境と同じ変換が行われる
     return block;
+  },
+  parameters: {
+    design: {
+      url: 'https://www.figma.com/...', // ✅ Figma URLを明示
+    },
   },
 };
 ```
@@ -350,16 +369,20 @@ export default function decorate(block) {
 
 **D2Cの対策**:
 - ✅ AIがEDS標準パターン（`decorate(block)` のロジック）を理解してコード生成
-- ✅ **ローカルEDS環境（`aem up`）を参照**してHTMLStructureを確認
-- ✅ Storybook HTMLは**ローカルEDS環境を参照してEDSコアロジックが生成する構造を正確に模倣**
+- ✅ **ローカルEDS環境（`aem up`）を参照**してHTML構造を確認
+- ✅ **config/component/component-definition.json**: EDS Block Collection標準パターンを定義（Living Specification）
+- ✅ Storybook HTMLは**EDSコアロジックが生成する構造を正確に模倣**（Block > Rows > Cells構造）
 - ✅ `decorate(block)` 関数をStorybookでも実行して最終HTMLを確認
-- ✅ **Living Specification**: EDS実環境から抽出したHTML構造を「生きた仕様」として参照
+- ✅ `data-block-name` と `data-block-status="loaded"` 属性を必須化
+- ✅ **CSS Import Order**: Stories内で`styles.css` → `{blockName}.css`の順でインポート
+- ✅ **Storybook Minimal UI**: autodocs/docs.descriptionを使用せず、視覚比較の精度を向上
 - ⚠️ タイトルが`<h3>`か`<p><strong>`かなど、細かい違いを実環境で確認してから実装
 
 ```javascript
 // blocks/cards/cards.js
 export default function decorate(block) {
-  // EDS実環境では <ul><li> 構造が既に存在する前提
+  // ✅ EDS実環境のBlock > Rows > Cells構造を前提
+  // ✅ data-block-name と data-block-status 属性が付与されている前提
   const ul = document.createElement('ul');
   const rows = [...block.children];
   
@@ -420,10 +443,10 @@ export const Default = {
   render: () => {
     const block = document.createElement('div');
     block.className = 'cards block';
-    block.setAttribute('data-block-name', 'cards');
-    block.setAttribute('data-block-status', 'loaded');
+    block.setAttribute('data-block-name', 'cards');  // ✅ EDS必須属性
+    block.setAttribute('data-block-status', 'loaded'); // ✅ EDS必須属性
     
-    // EDS実環境で decorate() が受け取る構造を再現
+    // ✅ EDS実環境で decorate() が受け取る構造を再現（Block > Rows > Cells）
     block.innerHTML = `
       <div>
         <div>
@@ -452,12 +475,18 @@ export const Default = {
     decorate(block);  // これでEDS実環境と同じ変換が行われる
     return block;
   },
+  parameters: {
+    design: {
+      url: 'https://www.figma.com/...', // ✅ Figma URLを明示
+    },
+  },
 };
 ```
 
-**D2Cの対策**:etてコード生成
-- ✅ Storybook HTMLは**EDSコアロジックが生成する構造を模倣**（2重Wrapper必須）
+**D2Cの対策**:
+- ✅ Storybook HTMLは**EDSコアロジックが生成する構造を模倣**（Block > Rows > Cells構造）
 - ✅ `decorate(block)` 関数をStorybookでも実行して最終HTMLを確認
+- ✅ **config/component/component-definition.json**: コンポーネント定義で構造パターンを明示
 - ⚠️ **EDS実環境を見ながらHTML構造を調整するステップが必須**
 - ⚠️ タイトルが`<h3>`か`<p><strong>`かなど、細かい違いを実環境で確認
 
@@ -484,26 +513,27 @@ export const Default = {
 #### ✅ **① Figma vs 実装コード の解決**
 
 **Figma → コード自動生成**
-- Figma APIから直接デザイン情報を取得
-- デザイントークン（CSS Custom Properties）を自動抽出
-- boundVariables優先でトークン使用率90%以上を実現
+- **Figma API構造解析**: ノード階層・要素タイプからHTML構造を決定（スクリーンショットではなくAPI優先）
+- **Figma Variables抽出**: boundVariablesを解析し、CSS Custom Propertiesへマッピング
+- **デザイントークン使用率90%以上**: ハードコード値を最小化
+- **スクリーンショット補完**: 透過度（RGBA alpha値）など、API で取得できない視覚的詳細のみ
+- **CSS Scoping**: すべてのセレクタに`.{blockName}`プレフィックスを自動付与（スタイル競合防止）
+- **Block Height Rule**: Figmaフレームサイズを固定高さとして使用せず、コンテンツ駆動で高さを決定
 
-**自動検証・修正ループ**
+**画像比較スクリプト**
 - FigmaとStorybookを画像比較（pixelmatch）
-- 差分5%以下になるまで自動的にCSSを修正
-- 最大5回の反復で精度95%以上を達成
+- バリデーション結果をHTMLレポートで可視化
 
 #### ✅ **② 実装コード vs 実コンテンツ の解決**
 
 **EDS標準パターンの徹底**
-- AIがEDS Block Collection標準パターンを参照してコード生成
-- `decorate(block)` 関数がEDSコアロジックの出力を前提とした実装
-- StorybookでもEDS同等のHTML構造を使用
+- **config/component/component-definition.json**: EDS Block Collection標準パターンを定義
+- AIがFigma API構造解析 + component-definition.jsonを参照してコード生成
+- `decorate(block)` 関数がEDSコアロジックの出力を前提とした実装（Block > Rows > Cells）
 
 **EDS実環境での検証**
 - ローカルEDS環境（`aem up`）で実際のHTML構造を確認
 - 必要に応じてStorybook HTMLとdecorate()ロジックを調整
-- Living Specification（実環境から抽出したHTML）を参照
 
 <br/><br/><br/><br/><br/>
 
@@ -547,26 +577,25 @@ D2Cでは、**課題1で生成したブロック**の品質を継続的に担保
        │ Figma API (MCP)
        ↓
 ┌──────────────────────────────────────────┐
-│  AI (Cursor) + 自動化スクリプト           │
-│  - inspect-figma: Variant検出            │
-│  - extract-tokens: トークン抽出          │
-│  - generate: JS/CSS/Stories生成          │
-│  - validate-block: 自動検証ループ        │
+│  AI (Cursor) + 自動化スクリプト          　 │
+│  - inspect-figma: Variant検出        　   │
+│  - extract-tokens: トークン抽出            │
+│  - generate: JS/CSS/Stories生成         　│
 └──────┬───────────────────────────────────┘
        │
        ↓
 ┌──────────────────────────────────────────┐
 │  EDS Blocks                              │
 │  blocks/{block}/                         │
-│  ├── {block}.js        (実装)           │
-│  ├── {block}.css       (スタイル)        │
+│  ├── {block}.js        (実装)      　     │
+│  ├── {block}.css       (スタイル)     　　 │
 │  ├── {block}.stories.js (Storybook)      │
-│  └── assets/           (画像)           │
+│  └── assets/           (画像)           　│
 └──────┬───────────────────────────────────┘
        │
        ↓
 ┌──────────────────────────────────────────┐
-│  2層 Visual Regression Testing           │
+│  2層 Visual Regression Testing    　　    │
 │  Layer 1: Storybook (Chromatic)          │
 │  Layer 2: Playwright (Chromatic)         │
 └──────┬───────────────────────────────────┘
@@ -574,9 +603,9 @@ D2Cでは、**課題1で生成したブロック**の品質を継続的に担保
        ↓
 ┌──────────────────────────────────────────┐
 │  GitHub Actions CI/CD                    │
-│  - PR時: 自動VRテスト                     │
+│  - PR時: 自動VRテスト            　　　     │
 │  - Merge時: Baseline更新                  │
-│  - PR Comment: Chromaticリンク投稿        │
+│  - PR Comment: Chromaticリンク投稿    　   │
 └──────────────────────────────────────────┘
 ```
 
